@@ -79,8 +79,6 @@ export default function EditVehiclePage() {
         setLoading(true);
         setError(null);
 
-        // modelId is already in formData from the select
-
         try {
             const result = await updateVehicle(vehicleId, formData);
 
