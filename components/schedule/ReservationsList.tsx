@@ -45,7 +45,7 @@ export default function ReservationsList({ reservations }: { reservations: Reser
                                 statusColor = 'bg-slate-500/10 text-slate-400 border-slate-500/20';
                             } else if (isActive) {
                                 statusLabel = 'Em Andamento';
-                                statusColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                                statusColor = 'bg-brand/10 text-brand-400 border-brand/20';
                             }
 
                             return (

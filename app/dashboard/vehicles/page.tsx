@@ -16,12 +16,12 @@ async function VehicleList() {
                 {/* Add New Card */}
                 <Link
                     href="/dashboard/vehicles/new"
-                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-700 rounded-xl hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group cursor-pointer h-[280px]"
+                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-700 rounded-xl hover:border-brand/50 hover:bg-brand/5 transition-all group cursor-pointer h-[280px]"
                 >
-                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition-colors">
+                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-4 group-hover:bg-brand/20 group-hover:text-brand-400 transition-colors">
                         <Plus className="w-6 h-6 text-slate-400" />
                     </div>
-                    <span className="text-slate-400 font-medium group-hover:text-emerald-400">Adicionar Veículo</span>
+                    <span className="text-slate-400 font-medium group-hover:text-brand-400">Adicionar Veículo</span>
                 </Link>
             </div>
         );
@@ -32,13 +32,13 @@ async function VehicleList() {
             {vehicles.map((vehicle: any) => (
                 <div
                     key={vehicle.id}
-                    className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/10"
+                    className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-brand/30 transition-all hover:shadow-lg hover:shadow-brand/10"
                 >
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-slate-700/50 rounded-lg group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition-colors">
+                        <div className="p-2 bg-slate-700/50 rounded-lg group-hover:bg-brand/20 group-hover:text-brand-400 transition-colors">
                             <Car className="w-6 h-6" />
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${vehicle.status === 'IN_YARD' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${vehicle.status === 'IN_YARD' ? 'bg-brand/10 text-brand-400 border-brand/20' :
                             vehicle.status === 'ON_ROUTE' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                 vehicle.status === 'AWAITING_REPAIR' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                                     'bg-red-500/10 text-red-400 border-red-500/20'
@@ -94,12 +94,12 @@ async function VehicleList() {
             {/* Add New Card */}
             <Link
                 href="/dashboard/vehicles/new"
-                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-700 rounded-xl hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group cursor-pointer h-[280px]"
+                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-700 rounded-xl hover:border-brand/50 hover:bg-brand/5 transition-all group cursor-pointer h-[280px]"
             >
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-4 group-hover:bg-brand/20 group-hover:text-brand-400 transition-colors">
                     <Plus className="w-6 h-6 text-slate-400" />
                 </div>
-                <span className="text-slate-400 font-medium group-hover:text-emerald-400">Adicionar Veículo</span>
+                <span className="text-slate-400 font-medium group-hover:text-brand-400">Adicionar Veículo</span>
             </Link>
         </div>
     );
@@ -144,7 +144,7 @@ export default function VehiclesPage() {
                 </div>
                 <Link
                     href="/dashboard/vehicles/new"
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-lg shadow-emerald-500/20"
+                    className="bg-brand hover:bg-brand-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-lg shadow-brand/20"
                 >
                     <Plus className="w-4 h-4" />
                     Novo Veículo
@@ -158,7 +158,7 @@ export default function VehiclesPage() {
                     <input
                         type="text"
                         placeholder="Buscar por placa, modelo ou chassi..."
-                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
                     />
                 </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">

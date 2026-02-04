@@ -41,8 +41,8 @@ export default function ResetPasswordPage() {
         return (
             <div className="w-full max-w-md">
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-xl text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500/20 rounded-full mb-4">
-                        <CheckCircle className="w-8 h-8 text-emerald-400" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-brand/20 rounded-full mb-4">
+                        <CheckCircle className="w-8 h-8 text-brand-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">
                         Senha Atualizada!
@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
                         Sua senha foi alterada com sucesso. Redirecionando para o login...
                     </p>
                     <div className="flex items-center justify-center">
-                        <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
+                        <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
                     </div>
                 </div>
             </div>
@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
             {/* Logo & Title */}
             <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-2xl mb-4 shadow-lg shadow-emerald-500/20">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-brand to-brand-800 rounded-2xl mb-4 shadow-lg shadow-brand/20">
                     <Car className="w-8 h-8 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-2">
@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
                                 required
                                 minLength={8}
                                 placeholder="Mínimo 8 caracteres"
-                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-12 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all"
+                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-12 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none transition-all"
                             />
                             <button
                                 type="button"
@@ -124,7 +124,7 @@ export default function ResetPasswordPage() {
                                 required
                                 minLength={8}
                                 placeholder="Digite novamente"
-                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-12 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all"
+                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-12 py-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none transition-all"
                             />
                             <button
                                 type="button"
@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-brand to-brand-800 hover:from-brand-950 hover:to-brand-950 text-white font-semibold py-3 px-4 rounded-lg shadow-lg shadow-brand/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {loading ? (
                             <>

@@ -50,9 +50,12 @@ async function DriverList() {
                                         </div>
                                     </td>
                                     <td className="p-4 text-right">
-                                        <button className="text-slate-400 hover:text-white text-sm font-medium transition-colors">
+                                        <Link
+                                            href={`/dashboard/drivers/${driver.id}/edit`}
+                                            className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+                                        >
                                             Editar
-                                        </button>
+                                        </Link>
                                     </td>
                                 </tr>
                             ))
@@ -100,7 +103,7 @@ export default function DriversPage() {
                 </div>
                 <Link
                     href="/dashboard/drivers/new"
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-lg shadow-emerald-500/20"
+                    className="bg-brand hover:bg-brand-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-lg shadow-brand/20"
                 >
                     <Plus className="w-4 h-4" />
                     Novo Condutor
@@ -114,7 +117,7 @@ export default function DriversPage() {
                     <input
                         type="text"
                         placeholder="Buscar por nome, CPF ou CNH..."
-                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
                     />
                 </div>
             </div>

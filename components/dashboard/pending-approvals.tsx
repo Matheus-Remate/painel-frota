@@ -162,7 +162,7 @@ export default function PendingApprovals({ requests: initialRequests, vehicles, 
                                         <button
                                             onClick={() => handleApprove(request)}
                                             disabled={processing === request.id || (!selectedVehicle[request.id])}
-                                            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-emerald-500/20 disabled:shadow-none"
+                                            className="flex items-center gap-2 px-4 py-2.5 bg-brand hover:bg-brand-950 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-brand/20 disabled:shadow-none"
                                         >
                                             <Check className="w-5 h-5" />
                                             <span>Aprovar</span>

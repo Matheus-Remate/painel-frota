@@ -51,9 +51,9 @@ export default function RequestsPage() {
         APPROVED: {
             label: 'Reservado',
             icon: <CheckCircle className="w-4 h-4" />,
-            bgColor: 'bg-emerald-500/20',
-            textColor: 'text-emerald-400',
-            borderColor: 'border-emerald-500/30',
+            bgColor: 'bg-brand/20',
+            textColor: 'text-brand-400',
+            borderColor: 'border-brand/30',
         },
         DENIED: {
             label: 'Negado',
@@ -92,7 +92,7 @@ export default function RequestsPage() {
                 </div>
                 <Link
                     href="/dashboard/requests/new"
-                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium shadow-lg shadow-emerald-500/20 transition-colors"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium shadow-lg shadow-brand/20 transition-colors"
                 >
                     <Plus className="w-5 h-5" />
                     Nova Solicitação
@@ -112,7 +112,7 @@ export default function RequestsPage() {
                         key={option.value}
                         onClick={() => setFilter(option.value as any)}
                         className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === option.value
-                            ? 'bg-emerald-500/20 text-emerald-400'
+                            ? 'bg-brand/20 text-brand-400'
                             : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                             }`}
                     >
@@ -124,7 +124,7 @@ export default function RequestsPage() {
             {/* Requests Grid */}
             {loading ? (
                 <div className="flex items-center justify-center py-12">
-                    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : filteredRequests.length === 0 ? (
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
@@ -137,7 +137,7 @@ export default function RequestsPage() {
                     </p>
                     <Link
                         href="/dashboard/requests/new"
-                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium"
                     >
                         <Plus className="w-5 h-5" />
                         Nova Solicitação

@@ -71,7 +71,7 @@ export function ModelsTab({ initialModels, initialBrands }: ModelsTabProps) {
                     </select>
                     <button
                         onClick={() => { setEditingModel(null); setShowModal(true); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium"
+                        className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium"
                     >
                         <Plus className="w-4 h-4" />
                         Novo Modelo
@@ -80,7 +80,7 @@ export function ModelsTab({ initialModels, initialBrands }: ModelsTabProps) {
             </div>
 
             {message && (
-                <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-brand/10 text-brand-400' : 'bg-red-500/10 text-red-400'}`}>
                     {message.text}
                 </div>
             )}
@@ -171,7 +171,7 @@ export function ModelsTab({ initialModels, initialBrands }: ModelsTabProps) {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-950 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                                     Salvar

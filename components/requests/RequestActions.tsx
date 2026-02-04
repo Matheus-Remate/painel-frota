@@ -56,7 +56,7 @@ export default function RequestActions({ requestId, status }: { requestId: strin
         <div className="flex gap-2">
             <Link
                 href={`/dashboard/requests/${requestId}/edit`}
-                className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-transparent hover:border-emerald-500/20"
+                className="p-2 text-slate-400 hover:text-brand-400 hover:bg-brand/10 rounded-lg transition-colors border border-transparent hover:border-brand/20"
                 title="Editar Solicitação"
             >
                 <Edit className="w-4 h-4" />

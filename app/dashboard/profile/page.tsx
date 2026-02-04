@@ -3,14 +3,46 @@
 import { useState } from "react";
 import { updateProfile, updatePassword, updateAvatar } from "@/lib/services/auth";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { User, Save, Loader2, Camera, Lock, AlertCircle, CheckCircle } from "lucide-react";
+import { User, Save, Loader2, Camera, Lock, AlertCircle, CheckCircle, Car } from "lucide-react";
+import { useEffect } from "react";
+import { getDriverByUserId } from "@/lib/services/dashboard";
 
 export default function ProfilePage() {
-    const { profile, refreshProfile } = useAuth();
+    const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
     const [loading, setLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    useEffect(() => {
+        if (user && !authLoading && !profile) {
+            refreshProfile();
+        }
+    }, [user, authLoading, profile, refreshProfile]);
+
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <Loader2 className="w-8 h-8 text-brand animate-spin" />
+            </div>
+        );
+    }
+
+    if (user && !profile) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+                <AlertCircle className="w-12 h-12 text-red-500" />
+                <h2 className="text-xl font-bold text-white">Perfil não encontrado</h2>
+                <p className="text-slate-400">Não conseguimos localizar seus dados de perfil no sistema.</p>
+                <button
+                    onClick={() => refreshProfile()}
+                    className="px-4 py-2 bg-brand text-white rounded-lg"
+                >
+                    Tentar Novamente
+                </button>
+            </div>
+        );
+    }
 
     async function handleProfileSubmit(formData: FormData) {
         setLoading(true);
@@ -73,7 +105,7 @@ export default function ProfilePage() {
         : 'U';
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto space-y-8" key={profile?.id || 'loading'}>
             <div>
                 <h1 className="text-3xl font-bold text-white">Meu Perfil</h1>
                 <p className="text-slate-400 mt-1">Gerencie suas informações pessoais</p>
@@ -91,7 +123,7 @@ export default function ProfilePage() {
                                 className="w-24 h-24 rounded-full object-cover border-4 border-slate-700"
                             />
                         ) : (
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center text-white text-2xl font-bold border-4 border-slate-700">
+                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand to-brand-800 flex items-center justify-center text-white text-2xl font-bold border-4 border-slate-700">
                                 {initials}
                             </div>
                         )}
@@ -127,14 +159,14 @@ export default function ProfilePage() {
             {/* Edit Profile Form */}
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <User className="w-5 h-5 text-emerald-400" />
+                    <User className="w-5 h-5 text-brand-400" />
                     <h3 className="text-lg font-semibold text-white">Informações Pessoais</h3>
                 </div>
 
                 {message && (
                     <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                        ? 'bg-brand/10 border border-brand/20 text-brand-400'
+                        : 'bg-red-500/10 border border-red-500/20 text-red-400'
                         }`}>
                         {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                         {message.text}
@@ -153,7 +185,7 @@ export default function ProfilePage() {
                                 type="text"
                                 defaultValue={profile?.first_name}
                                 required
-                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -166,7 +198,7 @@ export default function ProfilePage() {
                                 type="text"
                                 defaultValue={profile?.last_name}
                                 required
-                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             />
                         </div>
                     </div>
@@ -180,14 +212,14 @@ export default function ProfilePage() {
                             type="email"
                             defaultValue={profile?.email}
                             required
-                            className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                            className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                         />
                     </div>
                     <div className="pt-4">
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
+                            className="px-6 py-2.5 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             Salvar Alterações
@@ -199,14 +231,14 @@ export default function ProfilePage() {
             {/* Change Password Form */}
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <Lock className="w-5 h-5 text-emerald-400" />
+                    <Lock className="w-5 h-5 text-brand-400" />
                     <h3 className="text-lg font-semibold text-white">Alterar Senha</h3>
                 </div>
 
                 {passwordMessage && (
                     <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${passwordMessage.type === 'success'
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                        ? 'bg-brand/10 border border-brand/20 text-brand-400'
+                        : 'bg-red-500/10 border border-red-500/20 text-red-400'
                         }`}>
                         {passwordMessage.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                         {passwordMessage.text}
@@ -226,7 +258,7 @@ export default function ProfilePage() {
                                 required
                                 minLength={8}
                                 placeholder="Mínimo 8 caracteres"
-                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -240,7 +272,7 @@ export default function ProfilePage() {
                                 required
                                 minLength={8}
                                 placeholder="Digite novamente"
-                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             />
                         </div>
                     </div>
@@ -255,6 +287,70 @@ export default function ProfilePage() {
                         </button>
                     </div>
                 </form>
+            </div>
+
+            {/* Driver Info Section (If Linked) */}
+            <DriverInfoSection />
+        </div>
+    );
+}
+
+function DriverInfoSection() {
+    const { user } = useAuth();
+    const [driver, setDriver] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let mounted = true;
+        async function fetchDriver() {
+            if (!user?.id) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const data = await getDriverByUserId(user.id);
+                if (mounted) setDriver(data);
+            } catch (err) {
+                console.error("Error fetching driver info:", err);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        }
+        fetchDriver();
+        return () => { mounted = false; };
+    }, [user?.id]);
+
+    if (loading) return null;
+    if (!driver) return null;
+
+    return (
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+                <Car className="w-5 h-5 text-brand-400" />
+                <h3 className="text-lg font-semibold text-white">Dados do Condutor</h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                    <p className="text-sm font-medium text-slate-400">CPF</p>
+                    <p className="text-white font-mono">{driver.cpf}</p>
+                </div>
+                <div className="space-y-1">
+                    <p className="text-sm font-medium text-slate-400">Categoria CNH</p>
+                    <p className="text-white">{driver.cnh_category}</p>
+                </div>
+                <div className="space-y-1">
+                    <p className="text-sm font-medium text-slate-400">Validade CNH</p>
+                    <p className="text-white">
+                        {new Date(driver.cnh_expiration).toLocaleDateString('pt-BR')}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-xs text-slate-500 mt-2">
+                        Para alterar estes dados, entre em contato com o administrador.
+                    </p>
+                </div>
             </div>
         </div>
     );

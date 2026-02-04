@@ -13,6 +13,7 @@ export async function createDriver(formData: FormData) {
         cpf: formData.get('cpf') as string,
         cnh_category: formData.get('cnh_category') as string,
         cnh_expiration: formData.get('cnh_expiration') as string,
+        user_id: formData.get('user_id') ? (formData.get('user_id') as string) : null,
     };
 
     const { error } = await supabase
@@ -26,4 +27,29 @@ export async function createDriver(formData: FormData) {
 
     revalidatePath('/dashboard/drivers');
     redirect('/dashboard/drivers');
+}
+
+export async function updateDriver(id: string, formData: FormData) {
+    const supabase = createAdminClient();
+
+    const rawData = {
+        name: formData.get('name') as string,
+        cpf: formData.get('cpf') as string,
+        cnh_category: formData.get('cnh_category') as string,
+        cnh_expiration: formData.get('cnh_expiration') as string,
+        user_id: formData.get('user_id') ? (formData.get('user_id') as string) : null,
+    };
+
+    const { error } = await supabase
+        .from('drivers')
+        .update(rawData)
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error updating driver:', error);
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath('/dashboard/drivers');
+    return { success: true };
 }

@@ -51,6 +51,9 @@ export async function createBrand(formData: FormData) {
         .insert({ name });
 
     if (error) {
+        if (error.code === '23505') {
+            return { success: false, error: 'Esta marca já existe.' };
+        }
         return { success: false, error: error.message };
     }
 
@@ -126,6 +129,9 @@ export async function createModel(formData: FormData) {
         .insert({ name, brand_id: brandId });
 
     if (error) {
+        if (error.code === '23505') {
+            return { success: false, error: 'Este modelo já existe para esta marca.' };
+        }
         return { success: false, error: error.message };
     }
 
@@ -472,7 +478,12 @@ export async function createOccurrenceType(formData: FormData) {
 
     const { error } = await supabase.from('occurrence_types').insert({ name });
 
-    if (error) return { success: false, error: 'Erro ao criar tipo: ' + error.message };
+    if (error) {
+        if (error.code === '23505') {
+            return { success: false, error: 'Este tipo de ocorrência já existe.' };
+        }
+        return { success: false, error: 'Erro ao criar tipo: ' + error.message };
+    }
 
     revalidatePath('/dashboard/settings');
     return { success: true };

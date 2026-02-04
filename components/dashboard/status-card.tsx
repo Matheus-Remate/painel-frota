@@ -15,9 +15,9 @@ const statusConfig = {
     IN_YARD: {
         label: 'Veículos disponíveis hoje',
         icon: Car,
-        color: 'bg-emerald-500',
-        gradient: 'from-emerald-500 to-teal-500',
-        textColor: 'text-emerald-500'
+        color: 'bg-brand',
+        gradient: 'from-brand to-brand-400',
+        textColor: 'text-brand'
     },
     ON_ROUTE: {
         label: 'Veículos reservados hoje',
@@ -92,7 +92,7 @@ export default function StatusCard({ status, count, availableVehicles }: StatusC
                                     </p>
                                     <p className="text-[10px] text-slate-400 font-medium">{v.license_plate}</p>
                                 </div>
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                                <div className="w-2 h-2 rounded-full bg-brand shadow-sm shadow-brand/50" />
                             </div>
                         ))}
                     </div>

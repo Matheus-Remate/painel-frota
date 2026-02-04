@@ -115,6 +115,31 @@ export const getDrivers = cache(async () => {
         .order('name', { ascending: true });
 
     if (error) throw error;
+    if (error) throw error;
+    return data;
+});
+
+export const getDriverById = cache(async (id: string) => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('drivers')
+        .select('id, name, cpf, cnh_category, cnh_expiration')
+        .eq('id', id)
+        .single();
+
+    if (error) return null;
+    return data;
+});
+
+export const getDriverByUserId = cache(async (userId: string) => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('drivers')
+        .select('id, name, cpf, cnh_category, cnh_expiration')
+        .eq('user_id', userId)
+        .single();
+
+    if (error) return null;
     return data;
 });
 

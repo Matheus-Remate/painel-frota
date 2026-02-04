@@ -78,7 +78,7 @@ export default function ApprovalsPage() {
 
         try {
             const vehicles = await getAvailableVehicles(
-                request.model_id,
+                null, // Pass null to ensure we list ALL vehicles, not just the requested model
                 request.pickup_datetime,
                 request.return_datetime
             );
@@ -159,7 +159,7 @@ export default function ApprovalsPage() {
             {/* Message Alert */}
             {message && (
                 <div className={`p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
-                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                    ? 'bg-brand/10 border border-brand/20 text-brand-400'
                     : 'bg-red-500/10 border border-red-500/20 text-red-400'
                     }`}>
                     {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
@@ -173,11 +173,11 @@ export default function ApprovalsPage() {
             {/* Pending Requests */}
             {loading ? (
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
                 </div>
             ) : requests.length === 0 ? (
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
-                    <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
+                    <CheckCircle className="w-12 h-12 text-brand mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-white mb-2">Nenhuma solicitação pendente</h3>
                     <p className="text-slate-400">
                         Todas as solicitações foram processadas.
@@ -228,7 +228,7 @@ export default function ApprovalsPage() {
                                         <div className="flex gap-2 justify-end">
                                             <button
                                                 onClick={() => openApproveModal(request)}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-colors text-sm font-medium"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand/20 text-brand-400 rounded-lg hover:bg-brand/30 transition-colors text-sm font-medium"
                                             >
                                                 <Check className="w-4 h-4" />
                                                 Aprovar
@@ -263,7 +263,7 @@ export default function ApprovalsPage() {
 
                         {vehiclesLoading ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
+                                <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
                             </div>
                         ) : availableVehicles.length === 0 ? (
                             <div className="text-center py-8">
@@ -287,17 +287,17 @@ export default function ApprovalsPage() {
                                             className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left group ${!vehicle.isAvailable
                                                 ? 'bg-slate-900/30 border-slate-800 opacity-60 cursor-not-allowed'
                                                 : isRequestedModel
-                                                    ? 'bg-emerald-500/10 border-emerald-500/40 hover:bg-emerald-500/20'
+                                                    ? 'bg-brand/10 border-brand/40 hover:bg-brand/20'
                                                     : 'bg-slate-900/50 border-slate-700 hover:border-slate-500 hover:bg-slate-800'
                                                 }`}
                                         >
                                             <div className="flex-1">
                                                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                    <p className={`font-bold transition-colors ${isRequestedModel ? 'text-emerald-400' : 'text-white'}`}>
+                                                    <p className={`font-bold transition-colors ${isRequestedModel ? 'text-brand-400' : 'text-white'}`}>
                                                         {vehicle.model.brand.name} {vehicle.model.name}
                                                     </p>
                                                     {isRequestedModel && (
-                                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500 text-white uppercase tracking-tighter">
+                                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-brand text-white uppercase tracking-tighter">
                                                             Modelo Solicitado
                                                         </span>
                                                     )}
@@ -321,10 +321,10 @@ export default function ApprovalsPage() {
                                             </div>
                                             <div className="ml-4">
                                                 {actionLoading ? (
-                                                    <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+                                                    <Loader2 className="w-5 h-5 text-brand-400 animate-spin" />
                                                 ) : vehicle.isAvailable ? (
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 transition-all">
-                                                        <Check className={`w-5 h-5 ${isRequestedModel ? 'text-emerald-400' : 'text-slate-400'} group-hover:text-white transition-colors`} />
+                                                    <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center group-hover:bg-brand transition-all">
+                                                        <Check className={`w-5 h-5 ${isRequestedModel ? 'text-brand-400' : 'text-slate-400'} group-hover:text-white transition-colors`} />
                                                     </div>
                                                 ) : (
                                                     <X className="w-5 h-5 text-slate-700" />

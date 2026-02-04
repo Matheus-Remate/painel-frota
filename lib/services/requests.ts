@@ -378,6 +378,7 @@ export async function denyRequest(requestId: string, reason: string) {
 
 /**
  * Get available vehicles for a date range (shows ALL vehicles, checks availability)
+ * Note: modelId is ignored for filtering, but kept for signature compatibility if needed later.
  */
 export async function getAvailableVehicles(modelId: string | null, pickupDate: string, returnDate: string) {
     const supabase = await createClient();

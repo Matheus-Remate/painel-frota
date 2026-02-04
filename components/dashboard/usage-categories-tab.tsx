@@ -56,7 +56,7 @@ export function UsageCategoriesTab({
                 <h3 className="text-lg font-semibold text-white">Categorias de Uso</h3>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium"
                 >
                     <Plus className="w-4 h-4" />
                     Nova Categoria
@@ -108,7 +108,7 @@ export function UsageCategoriesTab({
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-950 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                                     Salvar

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
@@ -36,62 +36,102 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
 
     const fetchProfile = async (userId: string) => {
-        const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', userId)
-            .single();
+        try {
+            const { data, error } = await supabase
+                .rpc('get_my_profile')
+                .maybeSingle();
 
-        setProfile(data as UserProfile | null);
-    };
-
-    const refreshProfile = async () => {
-        if (user) {
-            await fetchProfile(user.id);
+            if (error) {
+                console.error("Critical: Error in get_my_profile RPC:", JSON.stringify(error, null, 2));
+                setProfile(null);
+            } else if (!data) {
+                console.warn("Warning: get_my_profile returned no data for authenticated user.");
+                setProfile(null);
+            } else {
+                console.log("Success: Profile loaded via RPC:", data.email);
+                setProfile(data as UserProfile | null);
+            }
+        } catch (err) {
+            console.error("Exception in fetchProfile:", err);
+            setProfile(null);
         }
     };
 
-    const handleSignOut = async () => {
-        await supabase.auth.signOut();
-        setUser(null);
-        setProfile(null);
-    };
+    const refreshProfile = useCallback(async () => {
+        if (user) {
+            await fetchProfile(user.id);
+        }
+    }, [user]);
+
+    const handleSignOut = useCallback(async () => {
+        try {
+            await supabase.auth.signOut();
+        } finally {
+            setUser(null);
+            setProfile(null);
+        }
+    }, [supabase]);
 
     useEffect(() => {
-        // Get initial session
+        let mounted = true;
+
         const initAuth = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            try {
+                // Check session first
+                const { data: { session } } = await supabase.auth.getSession();
 
-            if (user) {
-                setUser(user);
-                await fetchProfile(user.id);
+                if (mounted && session?.user) {
+                    setUser(session.user);
+                    // Critical: await profile so we have it before clearing loading
+                    await fetchProfile(session.user.id);
+                }
+            } catch (err) {
+                console.error("Auth init error:", err);
+            } finally {
+                // Guaranteed unblock
+                if (mounted) setIsLoading(false);
             }
-
-            setIsLoading(false);
         };
 
-        initAuth();
-
-        // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
-                if (session?.user) {
-                    setUser(session.user);
-                    await fetchProfile(session.user.id);
-                } else {
-                    setUser(null);
-                    setProfile(null);
+                if (!mounted) return;
+
+                try {
+                    if (session?.user) {
+                        setUser(session.user);
+                        // Always fetch profile on state change (login/session refresh)
+                        await fetchProfile(session.user.id);
+                    } else {
+                        setUser(null);
+                        setProfile(null);
+                    }
+                } catch (err) {
+                    console.error("Auth change error:", err);
+                } finally {
+                    if (mounted) setIsLoading(false);
                 }
-                setIsLoading(false);
             }
         );
 
+        initAuth();
+
+        // Safety timeout
+        const timeout = setTimeout(() => {
+            if (mounted && isLoading) {
+                console.warn("Auth check timed out. Forcing UI load.");
+                setIsLoading(false);
+            }
+        }, 5000);
+
         return () => {
+            mounted = false;
             subscription.unsubscribe();
+            clearTimeout(timeout);
         };
     }, []);
 
-    const value: AuthContextType = {
+    const value = useMemo(() => ({
         user,
         profile,
         isLoading,
@@ -99,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: profile?.role || null,
         signOut: handleSignOut,
         refreshProfile,
-    };
+    }), [user, profile, isLoading, handleSignOut, refreshProfile]);
 
     return (
         <AuthContext.Provider value={value}>
@@ -116,19 +156,16 @@ export function useAuth() {
     return context;
 }
 
-// Helper hook to check if user has specific role(s)
 export function useHasRole(allowedRoles: UserRole[]): boolean {
     const { role } = useAuth();
     return role !== null && allowedRoles.includes(role);
 }
 
-// Helper hook to check if user is admin
 export function useIsAdmin(): boolean {
     const { role } = useAuth();
     return role === 'admin';
 }
 
-// Helper hook to check if user is gestor or admin
 export function useIsGestorOrAdmin(): boolean {
     const { role } = useAuth();
     return role === 'admin' || role === 'gestor';

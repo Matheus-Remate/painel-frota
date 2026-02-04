@@ -99,7 +99,7 @@ export default function NewVehiclePage() {
 
                 {/* Dados Básicos */}
                 <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-emerald-400 border-b border-slate-700 pb-2">Dados Básicos</h2>
+                    <h2 className="text-lg font-semibold text-brand-400 border-b border-slate-700 pb-2">Dados Básicos</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label htmlFor="brandId" className="text-sm font-medium text-slate-300">Marca *</label>
@@ -109,7 +109,7 @@ export default function NewVehiclePage() {
                                 disabled={dataLoading}
                                 value={selectedBrandId}
                                 onChange={(e) => setSelectedBrandId(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             >
                                 <option value="">Selecione uma marca</option>
                                 {brands.map(brand => (
@@ -123,7 +123,7 @@ export default function NewVehiclePage() {
                                 name="modelId"
                                 required
                                 disabled={dataLoading || !selectedBrandId}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none disabled:opacity-50"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none disabled:opacity-50"
                             >
                                 <option value="">{selectedBrandId ? 'Selecione um modelo' : 'Selecione uma marca primeiro'}</option>
                                 {filteredModels.map(model => (
@@ -133,19 +133,19 @@ export default function NewVehiclePage() {
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="license_plate" className="text-sm font-medium text-slate-300">Placa *</label>
-                            <input required name="license_plate" placeholder="ABC-1234" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none font-mono uppercase" />
+                            <input required name="license_plate" placeholder="ABC-1234" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono uppercase" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="color" className="text-sm font-medium text-slate-300">Cor *</label>
-                            <input required name="color" placeholder="Ex: Branco" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none" />
+                            <input required name="color" placeholder="Ex: Branco" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="year" className="text-sm font-medium text-slate-300">Ano Fabricação *</label>
-                            <input required type="number" name="year" min="1990" max="2100" placeholder="2024" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none" />
+                            <input required type="number" name="year" min="1990" max="2100" placeholder="2024" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="fuel_type" className="text-sm font-medium text-slate-300">Combustível</label>
-                            <select name="fuel_type" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none">
+                            <select name="fuel_type" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none">
                                 <option value="Diesel">Diesel</option>
                                 <option value="Gasolina">Gasolina</option>
                                 <option value="Etanol">Etanol</option>
@@ -159,7 +159,7 @@ export default function NewVehiclePage() {
                                 name="usage_category"
                                 required
                                 disabled={dataLoading}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             >
                                 <option value="">Selecione o tipo</option>
                                 {usageCategories.map(cat => (
@@ -172,15 +172,15 @@ export default function NewVehiclePage() {
 
                 {/* Documentação */}
                 <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-emerald-400 border-b border-slate-700 pb-2">Documentação</h2>
+                    <h2 className="text-lg font-semibold text-brand-400 border-b border-slate-700 pb-2">Documentação</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label htmlFor="chassis" className="text-sm font-medium text-slate-300">Chassi</label>
-                            <input name="chassis" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none font-mono uppercase" />
+                            <input name="chassis" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono uppercase" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="renavam" className="text-sm font-medium text-slate-300">RENAVAM</label>
-                            <input name="renavam" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none font-mono" />
+                            <input name="renavam" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono" />
                         </div>
                     </div>
                 </div>
@@ -192,7 +192,7 @@ export default function NewVehiclePage() {
                     <button
                         type="submit"
                         disabled={loading || dataLoading}
-                        className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2.5 rounded-lg bg-brand hover:bg-brand-950 text-white shadow-lg shadow-brand/20 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                         {loading ? 'Salvando...' : 'Salvar Veículo'}

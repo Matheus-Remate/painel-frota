@@ -87,9 +87,9 @@ export default function NewRequestPage() {
     if (showSuccess) {
         return (
             <div className="max-w-2xl mx-auto">
-                <div className="bg-slate-800/50 backdrop-blur-sm border border-emerald-500/30 rounded-xl p-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500/20 rounded-full mb-4">
-                        <CheckCircle className="w-8 h-8 text-emerald-400" />
+                <div className="bg-slate-800/50 backdrop-blur-sm border border-brand/30 rounded-xl p-8 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-brand/20 rounded-full mb-4">
+                        <CheckCircle className="w-8 h-8 text-brand-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">
                         Solicitação Enviada!
@@ -100,7 +100,7 @@ export default function NewRequestPage() {
                     <div className="flex gap-4 justify-center">
                         <Link
                             href="/dashboard/requests"
-                            className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors"
+                            className="px-6 py-2.5 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium transition-colors"
                         >
                             Ver Minhas Solicitações
                         </Link>
@@ -144,7 +144,7 @@ export default function NewRequestPage() {
 
                 {/* Vehicle Selection */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-emerald-400 border-b border-slate-700 pb-2">
+                    <div className="flex items-center gap-3 text-brand-400 border-b border-slate-700 pb-2">
                         <Car className="w-5 h-5" />
                         <h2 className="text-lg font-semibold">Veículo</h2>
                     </div>
@@ -156,7 +156,7 @@ export default function NewRequestPage() {
                                 value={selectedBrand}
                                 onChange={(e) => setSelectedBrand(e.target.value)}
                                 disabled={dataLoading}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             >
                                 <option value="">Todas as marcas</option>
                                 {brands.map(brand => (
@@ -170,7 +170,7 @@ export default function NewRequestPage() {
                                 name="modelId"
                                 required
                                 disabled={dataLoading}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             >
                                 <option value="">Selecione um modelo</option>
                                 {filteredModels.map(model => (
@@ -185,7 +185,7 @@ export default function NewRequestPage() {
 
                 {/* Event Details */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-emerald-400 border-b border-slate-700 pb-2">
+                    <div className="flex items-center gap-3 text-brand-400 border-b border-slate-700 pb-2">
                         <FileText className="w-5 h-5" />
                         <h2 className="text-lg font-semibold">Detalhes do Evento</h2>
                     </div>
@@ -196,14 +196,14 @@ export default function NewRequestPage() {
                             name="eventName"
                             required
                             placeholder="Ex: Reunião com cliente em São Paulo"
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                         />
                     </div>
                 </div>
 
                 {/* Date & Time */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-emerald-400 border-b border-slate-700 pb-2">
+                    <div className="flex items-center gap-3 text-brand-400 border-b border-slate-700 pb-2">
                         <Calendar className="w-5 h-5" />
                         <h2 className="text-lg font-semibold">Período</h2>
                     </div>
@@ -215,7 +215,7 @@ export default function NewRequestPage() {
                                 type="date"
                                 name="pickupDatetime"
                                 required
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -224,7 +224,7 @@ export default function NewRequestPage() {
                                 type="date"
                                 name="returnDatetime"
                                 required
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             />
                         </div>
                     </div>
@@ -232,7 +232,7 @@ export default function NewRequestPage() {
 
                 {/* Driver */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-emerald-400 border-b border-slate-700 pb-2">
+                    <div className="flex items-center gap-3 text-brand-400 border-b border-slate-700 pb-2">
                         <User className="w-5 h-5" />
                         <h2 className="text-lg font-semibold">Condutor</h2>
                     </div>
@@ -243,7 +243,7 @@ export default function NewRequestPage() {
                             name="driverId"
                             required
                             disabled={dataLoading}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                         >
                             <option value="">Selecione um condutor...</option>
                             {drivers.map(driver => (
@@ -265,7 +265,7 @@ export default function NewRequestPage() {
                     <button
                         type="submit"
                         disabled={loading || dataLoading}
-                        className="flex-1 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium shadow-lg shadow-emerald-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="flex-1 px-6 py-2.5 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium shadow-lg shadow-brand/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {loading ? (
                             <>

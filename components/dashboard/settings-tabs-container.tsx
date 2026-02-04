@@ -49,7 +49,7 @@ export default function SettingsTabsContainer({ initialData }: SettingsTabsConta
             {/* Global Message Alert */}
             {message && (
                 <div className={`p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
-                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                    ? 'bg-brand/10 border border-brand/20 text-brand-400'
                     : 'bg-red-500/10 border border-red-500/20 text-red-400'
                     }`}>
                     {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
@@ -67,7 +67,7 @@ export default function SettingsTabsContainer({ initialData }: SettingsTabsConta
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
-                            ? 'bg-emerald-500/20 text-emerald-400'
+                            ? 'bg-brand/20 text-brand-400'
                             : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                             }`}
                     >

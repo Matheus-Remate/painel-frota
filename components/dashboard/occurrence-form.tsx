@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Loader2, Save } from "lucide-react";
-import { createOccurrence } from "@/lib/services/occurrences";
+import { createOccurrence, updateOccurrence } from "@/lib/services/occurrences";
 
 interface OccurrenceFormProps {
     vehicles: any[];
     drivers: any[];
     types: any[];
+    initialData?: any;
 }
 
-export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps) {
+export function OccurrenceForm({ vehicles, drivers, types, initialData }: OccurrenceFormProps) {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -21,12 +22,18 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
         setError(null);
 
         try {
-            const result = await createOccurrence(formData);
+            let result;
+
+            if (initialData) {
+                result = await updateOccurrence(initialData.id, formData);
+            } else {
+                result = await createOccurrence(formData);
+            }
 
             if (result.success) {
                 router.push('/dashboard/occurrences');
             } else {
-                setError(result.error || "Erro ao criar ocorrência");
+                setError(result.error || "Erro ao salvar ocorrência");
                 setLoading(false);
             }
         } catch (e) {
@@ -35,6 +42,11 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
             setLoading(false);
         }
     }
+
+    // Format date for datetime-local input (YYYY-MM-DDThh:mm)
+    const formattedDate = initialData?.date
+        ? new Date(initialData.date).toISOString().slice(0, 16)
+        : '';
 
     return (
         <form action={handleSubmit} className="space-y-6">
@@ -52,7 +64,8 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                     <select
                         name="vehicleId"
                         required
-                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                        defaultValue={initialData?.vehicle_id || ''}
+                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none"
                     >
                         <option value="">Selecione um veículo...</option>
                         {vehicles.map((v: any) => (
@@ -69,7 +82,8 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                     <select
                         name="typeId"
                         required
-                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                        defaultValue={initialData?.type_id || ''}
+                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none"
                     >
                         <option value="">Selecione o tipo...</option>
                         {types.map((t: any) => (
@@ -87,7 +101,8 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                         type="datetime-local"
                         name="date"
                         required
-                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                        defaultValue={formattedDate}
+                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none"
                     />
                 </div>
 
@@ -99,7 +114,8 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                         name="cost"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                        defaultValue={initialData?.cost || ''}
+                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none"
                     />
                 </div>
             </div>
@@ -109,7 +125,8 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                 <label className="text-sm font-medium text-slate-300">Condutor (Opcional)</label>
                 <select
                     name="driverId"
-                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                    defaultValue={initialData?.driver_id || ''}
+                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none"
                 >
                     <option value="">Buscar automaticamente na escala...</option>
                     {drivers.map((d: any) => (
@@ -127,7 +144,8 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                     required
                     rows={3}
                     placeholder="Descreva o que aconteceu..."
-                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none resize-none"
+                    defaultValue={initialData?.description || ''}
+                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none resize-none"
                 />
             </div>
 
@@ -137,7 +155,8 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                 <textarea
                     name="observation"
                     rows={2}
-                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none resize-none"
+                    defaultValue={initialData?.observation || ''}
+                    className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none resize-none"
                 />
             </div>
 
@@ -145,10 +164,10 @@ export function OccurrenceForm({ vehicles, drivers, types }: OccurrenceFormProps
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium transition-colors shadow-lg shadow-brand/20 disabled:opacity-50"
                 >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                    {loading ? "Salvando..." : "Salvar Ocorrência"}
+                    {loading ? "Salvando..." : (initialData ? "Atualizar Ocorrência" : "Salvar Ocorrência")}
                 </button>
             </div>
         </form>

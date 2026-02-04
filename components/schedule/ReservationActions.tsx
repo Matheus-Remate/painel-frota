@@ -59,7 +59,7 @@ export default function ReservationActions({ id, status }: { id: string, status:
         <div className="flex gap-2 justify-end">
             <Link
                 href={`/dashboard/schedule/${id}/edit`}
-                className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-transparent hover:border-emerald-500/20"
+                className="p-2 text-slate-400 hover:text-brand-400 hover:bg-brand/10 rounded-lg transition-colors border border-transparent hover:border-brand/20"
                 title="Editar Reserva"
             >
                 <Edit className="w-4 h-4" />

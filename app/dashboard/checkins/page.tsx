@@ -28,7 +28,7 @@ export default async function CheckinsPage() {
 
                 <Link
                     href="/dashboard/checkins/new"
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors shadow-lg shadow-emerald-500/20"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium transition-colors shadow-lg shadow-brand/20"
                 >
                     <CheckCircle className="w-5 h-5" />
                     Novo Check-in
@@ -44,7 +44,7 @@ export default async function CheckinsPage() {
 
                 {alerts.length === 0 ? (
                     <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-8 text-center text-slate-500">
-                        <CheckCircle className="w-12 h-12 mx-auto mb-3 text-emerald-500/50" />
+                        <CheckCircle className="w-12 h-12 mx-auto mb-3 text-brand/50" />
                         <p>Nenhum alerta pendente. Frota operando normalmente.</p>
                     </div>
                 ) : (
@@ -82,14 +82,30 @@ function CheckinCard({ checkin, isAlert }: { checkin: any, isAlert: boolean }) {
         <div className={`bg-slate-800/50 backdrop-blur-sm border rounded-xl p-6 transition-all hover:bg-slate-800/80 group ${isAlert ? 'border-amber-500/30 bg-amber-500/5' : 'border-slate-700/50'
             }`}>
             <div className="flex flex-col lg:flex-row gap-6">
-                <div className={`w-2 h-full rounded-full hidden lg:block ${checkin.has_issues ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
+                <div className={`w-2 h-full rounded-full hidden lg:block ${checkin.has_issues ? 'bg-amber-500' : 'bg-brand'}`}></div>
 
                 <div className="flex-1">
                     <div className="flex justify-between items-start">
                         <div>
                             <div className="flex items-center gap-3 mb-1">
                                 <span className="text-xl font-bold text-white">
-                                    {checkin.vehicle?.model ? `${checkin.vehicle.model.brand.name} ${checkin.vehicle.model.name}` : 'Veículo Removido'}
+                                    {(() => {
+                                        if (!checkin.vehicle?.model) return 'Veículo Removido';
+
+                                        const model = checkin.vehicle.model;
+                                        // Handle model as array or object
+                                        const modelData = Array.isArray(model) ? model[0] : model;
+                                        if (!modelData) return 'Modelo Indisponível';
+
+                                        const modelName = modelData.name;
+
+                                        // Handle brand as array or object
+                                        const brand = modelData.brand;
+                                        const brandData = Array.isArray(brand) ? brand[0] : brand;
+                                        const brandName = brandData?.name || '';
+
+                                        return `${brandName} ${modelName}`.trim();
+                                    })()}
                                 </span>
                                 <span className="text-sm font-mono bg-slate-900 px-2 py-1 rounded text-slate-400 border border-slate-700">
                                     {checkin.vehicle?.license_plate || '---'}
@@ -109,7 +125,7 @@ function CheckinCard({ checkin, isAlert }: { checkin: any, isAlert: boolean }) {
                             )}
 
                             {!isAlert && checkin.resolved && (
-                                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-2">
+                                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-brand/20 text-brand-400 border border-brand/30 mb-2">
                                     <CheckCircle className="w-3 h-3" />
                                     RESOLVIDO
                                 </div>
@@ -128,7 +144,7 @@ function CheckinCard({ checkin, isAlert }: { checkin: any, isAlert: boolean }) {
                         <StatusItem label="Pneus/Lataria" status={checkin.tires_exterior_status} />
                         <div className="flex items-center justify-between p-3 rounded-lg border border-slate-700 bg-slate-800/50">
                             <span className="text-slate-300 font-medium text-sm">Combustível</span>
-                            <span className="text-xs font-bold text-emerald-400">{checkin.fuel_level || 'N/A'}</span>
+                            <span className="text-xs font-bold text-brand-400">{checkin.fuel_level || 'N/A'}</span>
                         </div>
                     </div>
 
@@ -137,7 +153,7 @@ function CheckinCard({ checkin, isAlert }: { checkin: any, isAlert: boolean }) {
                             <h4 className="text-slate-400 text-xs font-bold mb-2 uppercase tracking-wider">Fotos Anexadas</h4>
                             <div className="flex gap-2 overflow-x-auto pb-2">
                                 {checkin.photos.map((photo: string, index: number) => (
-                                    <a href={photo} target="_blank" rel="noopener noreferrer" key={index} className="block w-20 h-20 rounded-lg overflow-hidden border border-slate-700 hover:border-emerald-500 transition-colors shrink-0">
+                                    <a href={photo} target="_blank" rel="noopener noreferrer" key={index} className="block w-20 h-20 rounded-lg overflow-hidden border border-slate-700 hover:border-brand transition-colors shrink-0">
                                         <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${photo})` }} />
                                     </a>
                                 ))}
@@ -155,7 +171,7 @@ function CheckinCard({ checkin, isAlert }: { checkin: any, isAlert: boolean }) {
 
                             {checkin.resolved && (
                                 <div className="mt-3 pt-3 border-t border-amber-500/20">
-                                    <p className="text-xs text-emerald-400 font-bold mb-1">RESOLUÇÃO:</p>
+                                    <p className="text-xs text-brand-400 font-bold mb-1">RESOLUÇÃO:</p>
                                     <p className="text-slate-400 text-sm">{checkin.resolution_notes}</p>
                                 </div>
                             )}
@@ -169,7 +185,7 @@ function CheckinCard({ checkin, isAlert }: { checkin: any, isAlert: boolean }) {
 
 function StatusItem({ label, status }: { label: string, status: 'OK' | 'ALERT' | 'DAMAGE' }) {
     const colors = {
-        'OK': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        'OK': 'text-brand-400 bg-brand/10 border-brand/20',
         'ALERT': 'text-amber-400 bg-amber-500/10 border-amber-500/20',
         'DAMAGE': 'text-red-400 bg-red-500/10 border-red-500/20',
     };

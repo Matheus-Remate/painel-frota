@@ -105,7 +105,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
                                 type="datetime-local"
                                 value={dates.start}
                                 onChange={e => setDates(prev => ({ ...prev, start: e.target.value }))}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none [color-scheme:dark]"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none [color-scheme:dark]"
                             />
                         </div>
                     </div>
@@ -118,7 +118,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
                                 type="datetime-local"
                                 value={dates.end}
                                 onChange={e => setDates(prev => ({ ...prev, end: e.target.value }))}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none [color-scheme:dark]"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none [color-scheme:dark]"
                             />
                         </div>
                     </div>
@@ -143,7 +143,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
             {step === 2 && (
                 <form action={handleSubmit} className="space-y-6 pt-6 border-t border-slate-700/50 animate-in fade-in slide-in-from-bottom-4">
                     <div className="flex justify-between items-center">
-                        <h3 className="text-emerald-400 font-medium">Veículos Disponíveis ({availableVehicles.length})</h3>
+                        <h3 className="text-brand-400 font-medium">Veículos Disponíveis ({availableVehicles.length})</h3>
                         <button type="button" onClick={() => setStep(1)} className="text-sm text-slate-400 hover:text-white underline">Alterar datas</button>
                     </div>
 
@@ -154,7 +154,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
                                 <select
                                     required
                                     name="vehicle_id"
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                                 >
                                     <option value="">Selecione um veículo...</option>
                                     {availableVehicles.map(v => {
@@ -177,7 +177,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
                                 <select
                                     required
                                     name="driver_id"
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                                 >
                                     <option value="">Selecione um condutor...</option>
                                     {drivers.map(d => (
@@ -194,7 +194,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
                                 name="purpose"
                                 placeholder="Descreva o motivo da reserva ou destino..."
                                 rows={3}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none resize-none"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none resize-none"
                             />
                         </div>
                     </div>
@@ -206,7 +206,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-2.5 rounded-lg bg-brand hover:bg-brand-950 text-white shadow-lg shadow-brand/20 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             Configurar Reserva

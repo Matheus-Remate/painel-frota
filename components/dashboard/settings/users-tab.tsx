@@ -75,7 +75,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                 <h3 className="text-lg font-semibold text-white">Gestão de Usuários</h3>
                 <button
                     onClick={() => { setEditingUser(null); setShowModal(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium"
                 >
                     <Plus className="w-4 h-4" />
                     Novo Usuário
@@ -83,7 +83,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
             </div>
 
             {message && (
-                <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-brand/10 text-brand-400' : 'bg-red-500/10 text-red-400'}`}>
                     {message.text}
                 </div>
             )}
@@ -106,7 +106,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                         {user.avatar_url ? (
                                             <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full" />
                                         ) : (
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-brand-800 flex items-center justify-center text-white text-xs font-bold">
                                                 {user.first_name[0]}{user.last_name[0]}
                                             </div>
                                         )}
@@ -164,7 +164,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                         defaultValue={editingUser?.first_name}
                                         required
                                         placeholder="Nome"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
                                     />
                                 </div>
                                 <div>
@@ -174,7 +174,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                         defaultValue={editingUser?.last_name}
                                         required
                                         placeholder="Sobrenome"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
                                     />
                                 </div>
                             </div>
@@ -187,7 +187,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                     disabled={!!editingUser}
                                     required
                                     placeholder="email@exemplo.com"
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
                                 />
                             </div>
                             <div>
@@ -200,7 +200,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                     required={!editingUser}
                                     minLength={8}
                                     placeholder={editingUser ? "Alterar senha" : "Mínimo 8 caracteres"}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all"
                                 />
                             </div>
                             <div>
@@ -209,7 +209,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                     name="role"
                                     defaultValue={editingUser?.role || 'solicitante'}
                                     required
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all appearance-none"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all appearance-none"
                                 >
                                     <option value="solicitante">Solicitante</option>
                                     <option value="gestor">Gestor</option>
@@ -227,7 +227,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 px-4 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold shadow-lg shadow-emerald-500/20 transition-all"
+                                    className="flex-1 px-4 py-2.5 bg-brand text-white rounded-lg hover:bg-brand-950 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold shadow-lg shadow-brand/20 transition-all"
                                 >
                                     {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                                     {editingUser ? 'Salvar Alterações' : 'Criar Usuário'}

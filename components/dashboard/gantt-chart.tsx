@@ -70,7 +70,7 @@ export default function GanttChart({ reservations, vehicles }: GanttChartProps) 
 
                 <Link
                     href="/dashboard/schedule/new"
-                    className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors font-medium shadow-lg shadow-emerald-500/20"
+                    className="flex items-center gap-2 bg-brand hover:bg-brand-950 text-white px-4 py-2 rounded-lg transition-colors font-medium shadow-lg shadow-brand/20"
                 >
                     <Plus className="w-4 h-4" />
                     Nova Reserva

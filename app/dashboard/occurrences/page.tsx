@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, AlertTriangle, Calendar, Car, User } from "lucide-react";
 import { getOccurrences } from "@/lib/services/occurrences";
+import OccurrenceActions from "@/components/dashboard/occurrence-actions";
 
 export default async function OccurrencesPage() {
     const occurrences = await getOccurrences();
@@ -15,7 +16,7 @@ export default async function OccurrencesPage() {
 
                 <Link
                     href="/dashboard/occurrences/new"
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors shadow-lg shadow-emerald-500/20"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-950 text-white rounded-lg font-medium transition-colors shadow-lg shadow-brand/20"
                 >
                     <Plus className="w-5 h-5" />
                     Nova Ocorrência
@@ -31,8 +32,11 @@ export default async function OccurrencesPage() {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {occurrences.map((occ: any) => (
-                            <div key={occ.id} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800 transition-colors">
-                                <div className="flex justify-between items-start mb-4">
+                            <div key={occ.id} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800 transition-colors relative group">
+                                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <OccurrenceActions id={occ.id} />
+                                </div>
+                                <div className="flex justify-between items-start mb-4 pr-8">
                                     <div className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded text-xs font-bold border border-amber-500/20">
                                         {occ.type?.name}
                                     </div>
@@ -43,7 +47,7 @@ export default async function OccurrencesPage() {
                                 </div>
 
                                 <h3 className="text-white font-bold mb-1 flex items-center gap-2">
-                                    <Car className="w-4 h-4 text-emerald-500" />
+                                    <Car className="w-4 h-4 text-brand" />
                                     {occ.vehicle?.model?.brand?.name || (occ.vehicle as any)?.brand} {occ.vehicle?.model?.name || (occ.vehicle as any)?.model}
                                 </h3>
                                 <p className="text-slate-400 text-sm mb-4">{occ.vehicle?.license_plate}</p>

@@ -34,7 +34,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
             {/* Odometer */}
             <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                    <Gauge className="w-4 h-4 text-emerald-500" />
+                    <Gauge className="w-4 h-4 text-brand" />
                     Odômetro Atual (km)
                 </label>
                 <input
@@ -43,14 +43,14 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
                     placeholder={lastOdometer ? `Maior que ${lastOdometer}` : "000000"}
                     required
                     min={lastOdometer}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand focus:outline-none"
                 />
             </div>
 
             {/* Fuel Level */}
             <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                    <Fuel className="w-4 h-4 text-emerald-500" />
+                    <Fuel className="w-4 h-4 text-brand" />
                     Nível de Combustível
                 </label>
                 <div className="grid grid-cols-5 gap-2">
@@ -66,7 +66,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
                             />
                             <label
                                 htmlFor={`fuel-${level}`}
-                                className="block text-center text-xs py-2 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-500 transition-all cursor-pointer"
+                                className="block text-center text-xs py-2 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 peer-checked:bg-brand-950 peer-checked:text-white peer-checked:border-brand transition-all cursor-pointer"
                             >
                                 {level === 'EMPTY' ? 'E' : level === 'FULL' ? 'F' : level}
                             </label>
@@ -89,7 +89,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
                         <div className="flex bg-slate-800 rounded p-1">
                             <label className="cursor-pointer">
                                 <input type="radio" name={item.name} value="OK" defaultChecked className="peer hidden" />
-                                <div className="px-3 py-1 rounded text-xs font-bold text-slate-500 peer-checked:bg-emerald-500 peer-checked:text-white transition-all">OK</div>
+                                <div className="px-3 py-1 rounded text-xs font-bold text-slate-500 peer-checked:bg-brand peer-checked:text-white transition-all">OK</div>
                             </label>
                             <label className="cursor-pointer">
                                 <input
@@ -120,7 +120,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
             {/* Photos */}
             <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                    <Camera className="w-4 h-4 text-emerald-500" />
+                    <Camera className="w-4 h-4 text-brand" />
                     Fotos (Opcional)
                 </label>
                 <div className="relative">
@@ -157,7 +157,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
                 <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-brand-950 hover:bg-brand disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                     {submitting ? 'Enviando...' : (
                         <>

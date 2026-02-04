@@ -24,7 +24,7 @@ export default function CheckinActions({ checkinId }: { checkinId: string }) {
         <>
             <button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-3 py-1.5 bg-brand/10 hover:bg-brand/20 text-brand-400 border border-brand/20 rounded-lg transition-colors text-sm font-medium"
             >
                 <Check className="w-4 h-4" />
                 Resolver
@@ -46,7 +46,7 @@ export default function CheckinActions({ checkinId }: { checkinId: string }) {
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="O que foi feito para resolver o problema?"
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-emerald-500 min-h-[100px]"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-brand min-h-[100px]"
                             />
                         </div>
 
@@ -60,7 +60,7 @@ export default function CheckinActions({ checkinId }: { checkinId: string }) {
                             <button
                                 onClick={handleResolve}
                                 disabled={loading || !notes.trim()}
-                                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg disabled:opacity-50"
+                                className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-950 text-white rounded-lg disabled:opacity-50"
                             >
                                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                                 Confirmar Resolução

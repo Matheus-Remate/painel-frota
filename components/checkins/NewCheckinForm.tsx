@@ -47,7 +47,7 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                                     placeholder="Buscar placa ou modelo..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white focus:ring-2 focus:ring-brand/50 outline-none"
                                 />
                             </div>
 
@@ -60,7 +60,7 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                                             className="w-full flex items-center justify-between p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-slate-900 rounded-lg text-slate-400 group-hover:text-emerald-400 transition-colors">
+                                                <div className="p-2 bg-slate-900 rounded-lg text-slate-400 group-hover:text-brand-400 transition-colors">
                                                     <Car className="w-5 h-5" />
                                                 </div>
                                                 <div className="text-left">
@@ -81,10 +81,10 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                     ) : (
                         // Selected Vehicle Display
                         <div className="animate-in fade-in slide-in-from-top-4">
-                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center justify-between mb-4">
+                            <div className="bg-brand/10 border border-brand/20 rounded-xl p-4 flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                                        <Car className="w-6 h-6 text-emerald-400" />
+                                    <div className="w-12 h-12 bg-brand/20 rounded-lg flex items-center justify-center">
+                                        <Car className="w-6 h-6 text-brand-400" />
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-bold text-white">
@@ -118,7 +118,7 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                                             name="odometer"
                                             type="number"
                                             required
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none"
                                             placeholder="Ex: 50000"
                                         />
                                     </div>
@@ -130,7 +130,7 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                                                 <div className="flex gap-2">
                                                     <label className="flex-1 cursor-pointer">
                                                         <input type="radio" name={`status_${idx}`} value="OK" className="peer sr-only" defaultChecked />
-                                                        <div className="flex flex-col items-center gap-1 p-2 rounded border border-slate-700 hover:bg-slate-800 peer-checked:bg-emerald-500/10 peer-checked:border-emerald-500/50 peer-checked:text-emerald-400 transition-all">
+                                                        <div className="flex flex-col items-center gap-1 p-2 rounded border border-slate-700 hover:bg-slate-800 peer-checked:bg-brand/10 peer-checked:border-brand/50 peer-checked:text-brand-400 transition-all">
                                                             <CheckCircle className="w-4 h-4" />
                                                             <span className="text-xs">OK</span>
                                                         </div>
@@ -152,13 +152,13 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                                         <textarea
                                             name="notes"
                                             rows={3}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 outline-none resize-none"
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 outline-none resize-none"
                                             placeholder="Descreva problemas se houver..."
                                         />
                                     </div>
                                 </div>
 
-                                <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all">
+                                <button type="submit" className="w-full bg-brand hover:bg-brand-950 text-white font-bold py-3 rounded-xl shadow-lg shadow-brand/20 transition-all">
                                     Finalizar Check-in
                                 </button>
                             </form>
