@@ -1,0 +1,123 @@
+'use server';
+
+import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
+import { createAdminClient } from '@/lib/supabase/admin';
+
+export async function resolveCheckin(id: string, notes: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Get the profile ID for the current user
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+    const { error } = await supabase
+        .from('check_ins')
+        .update({
+            resolved: true,
+            resolved_at: new Date().toISOString(),
+            resolved_by: profile?.id,
+            resolution_notes: notes
+        })
+        .eq('id', id);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath('/dashboard/checkins');
+    revalidatePath('/dashboard/vehicles');
+    return { success: true };
+}
+
+export async function getVehicles() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('vehicles')
+        .select(`
+            *,
+            model:models(
+                id,
+                name,
+                brand:brands(id, name)
+            )
+        `)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+}
+
+export async function getVehicleById(id: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('vehicles')
+        .select(`
+        *,
+        model:models(
+            id,
+            name,
+            brand:brands(id, name)
+        ),
+        check_ins (
+          id,
+          checked_in_at,
+          odometer,
+          has_issues,
+          cleanliness_status,
+          dash_lights_status,
+          tires_exterior_status,
+          driver:drivers(name)
+        )
+      `)
+        .eq('id', id)
+        .is('deleted_at', null)
+        .single();
+
+    if (error) throw error;
+
+    // Ordenar check-ins por data (mais recente primeiro)
+    if (data && data.check_ins) {
+        data.check_ins.sort((a: any, b: any) =>
+            new Date(b.checked_in_at).getTime() - new Date(a.checked_in_at).getTime()
+        );
+    }
+
+    return data;
+}
+
+export async function getDrivers() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('drivers')
+        .select('*')
+        .is('deleted_at', null)
+        .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data;
+}
+
+export async function getCheckins() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('check_ins')
+        .select(`
+      *,
+      vehicle:vehicles(
+        license_plate,
+        model:models(
+          name,
+          brand:brands(name)
+        )
+      ),
+      driver:drivers(name)
+    `)
+        .order('checked_in_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+}

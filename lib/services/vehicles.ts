@@ -1,0 +1,81 @@
+'use server';
+
+import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+
+export async function createVehicle(formData: FormData) {
+    const supabase = await createClient();
+
+    const licensePlate = formData.get('licensePlate') as string;
+    const modelId = formData.get('modelId') as string;
+    const year = parseInt(formData.get('year') as string);
+    const fuelType = formData.get('fuelType') as string;
+    const usageCategory = formData.get('usageCategory') as string;
+
+    const { error } = await supabase
+        .from('vehicles')
+        .insert({
+            license_plate: licensePlate,
+            model_id: modelId,
+            year,
+            fuel_type: fuelType,
+            usage_category: usageCategory,
+            status: 'IN_YARD', // Default status
+        });
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath('/dashboard/vehicles');
+    return { success: true };
+}
+
+export async function updateVehicle(id: string, formData: FormData) {
+    const supabase = await createClient();
+
+    const licensePlate = formData.get('licensePlate') as string;
+    const modelId = formData.get('modelId') as string;
+    const year = parseInt(formData.get('year') as string);
+    const fuelType = formData.get('fuelType') as string;
+    const usageCategory = formData.get('usageCategory') as string;
+    const status = formData.get('status') as string;
+
+    const { error } = await supabase
+        .from('vehicles')
+        .update({
+            license_plate: licensePlate,
+            model_id: modelId,
+            year,
+            fuel_type: fuelType,
+            usage_category: usageCategory,
+            status: status,
+        })
+        .eq('id', id);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath('/dashboard/vehicles');
+    revalidatePath(`/dashboard/vehicles/${id}`);
+    return { success: true };
+}
+
+export async function deleteVehicle(id: string) {
+    const supabase = await createClient();
+
+    // Soft delete the vehicle instead of hard delete
+    const { error } = await supabase
+        .from('vehicles')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath('/dashboard/vehicles');
+    return { success: true };
+}
