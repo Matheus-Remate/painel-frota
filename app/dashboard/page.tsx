@@ -15,13 +15,19 @@ async function PendingApprovalsSection() {
         getPendingRequests()
     ]);
 
-    const vehicles = vehiclesRaw.map(v => ({
-        id: v.id,
-        model: v.model?.name || '',
-        license_plate: v.license_plate,
-        brand: v.model?.brand?.name || '',
-        model_id: v.model_id
-    }));
+    const vehicles = vehiclesRaw.map(v => {
+        const modelObj = v.model as any;
+        const modelName = typeof v.model === 'string' ? v.model : (modelObj?.name || '');
+        const brandData = modelObj?.brand;
+        const brandName = Array.isArray(brandData) ? brandData[0]?.name : brandData?.name || '';
+        return {
+            id: v.id,
+            model: modelName,
+            license_plate: v.license_plate,
+            brand: brandName,
+            model_id: v.model_id
+        };
+    });
 
     return (
         <PendingApprovals
@@ -47,13 +53,18 @@ async function GanttChartSection() {
         getVehicles()
     ]);
 
-    const vehicles = vehiclesRaw.map(v => ({
-        id: v.id,
-        model: v.model?.name || '',
-        license_plate: v.license_plate,
-        brand: v.model?.brand?.name || '',
-        model_id: v.model_id
-    }));
+    const vehicles = vehiclesRaw.map(v => {
+        const modelObj = v.model as any;
+        const modelName = typeof v.model === 'string' ? v.model : (modelObj?.name || '');
+        const brandName = modelObj?.brand?.name || '';
+        return {
+            id: v.id,
+            model: modelName,
+            license_plate: v.license_plate,
+            brand: brandName,
+            model_id: v.model_id
+        };
+    });
 
     return <GanttChart reservations={reservations} vehicles={vehicles} />;
 }

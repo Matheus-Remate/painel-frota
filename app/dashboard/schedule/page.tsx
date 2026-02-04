@@ -12,12 +12,17 @@ export default async function SchedulePage() {
     ]);
 
     // Simplificar veículos para o componente
-    const vehicles = vehiclesRaw.map(v => ({
-        id: v.id,
-        model: v.model?.name || '',
-        brand: v.model?.brand?.name || '',
-        license_plate: v.license_plate
-    }));
+    const vehicles = vehiclesRaw.map(v => {
+        const modelObj = v.model as any;
+        const modelName = typeof v.model === 'string' ? v.model : (modelObj?.name || '');
+        const brandName = modelObj?.brand?.name || '';
+        return {
+            id: v.id,
+            model: modelName,
+            brand: brandName,
+            license_plate: v.license_plate
+        };
+    });
 
     return (
         <div className="space-y-6">

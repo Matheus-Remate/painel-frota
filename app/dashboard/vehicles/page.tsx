@@ -29,7 +29,7 @@ async function VehicleList() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {vehicles.map((vehicle) => (
+            {vehicles.map((vehicle: any) => (
                 <div
                     key={vehicle.id}
                     className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/10"
@@ -51,7 +51,17 @@ async function VehicleList() {
                     </div>
 
                     <h3 className="text-lg font-bold text-white mb-1">
-                        {vehicle.model?.brand?.name || (typeof (vehicle as any)?.brand === 'string' ? (vehicle as any).brand : '') || ''} {vehicle.model?.name || (typeof (vehicle as any)?.model === 'string' ? (vehicle as any).model : '') || ''}
+                        {(() => {
+                            const modelObj = typeof vehicle.model === 'object' ? vehicle.model as any : null;
+                            const modelName = typeof vehicle.model === 'string'
+                                ? vehicle.model
+                                : (Array.isArray(vehicle.model) ? vehicle.model[0]?.name : vehicle.model?.name) || 'Modelo Desconhecido';
+
+                            const brandData = modelObj?.brand;
+                            const brandName = Array.isArray(brandData) ? brandData[0]?.name : brandData?.name || (vehicle as any).brand || '';
+
+                            return `${brandName} ${modelName}`.trim();
+                        })()}
                     </h3>
                     <p className="text-2xl font-mono text-slate-300 mb-4">{vehicle.license_plate}</p>
 

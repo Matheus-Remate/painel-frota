@@ -23,22 +23,8 @@ export interface VehicleRequest {
     driver_id?: string | null;
     created_at: string;
     updated_at: string;
-    model?: {
-        name: string;
-        brand: {
-            name: string;
-        };
-    };
-    vehicle?: {
-        id: string;
-        license_plate: string;
-        model?: {
-            name: string;
-            brand: {
-                name: string;
-            };
-        };
-    };
+    model?: any;
+    vehicle?: any;
     requester?: {
         first_name: string;
         last_name: string;
@@ -175,7 +161,7 @@ export async function getMyRequests(): Promise<VehicleRequest[]> {
         .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as VehicleRequest[] || [];
+    return (data as unknown) as VehicleRequest[] || [];
 }
 
 /**
@@ -205,7 +191,7 @@ export const getPendingRequests = cache(async (): Promise<VehicleRequest[]> => {
         .order('pickup_datetime', { ascending: true });
 
     if (error) throw error;
-    return data as VehicleRequest[] || [];
+    return (data as unknown) as VehicleRequest[] || [];
 });
 
 /**
@@ -243,7 +229,7 @@ export const getAllRequests = cache(async (): Promise<VehicleRequest[]> => {
         .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as VehicleRequest[] || [];
+    return (data as unknown) as VehicleRequest[] || [];
 });
 
 /**

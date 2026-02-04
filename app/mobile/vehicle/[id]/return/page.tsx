@@ -20,7 +20,7 @@ export default async function ReturnPage({ params }: { params: { id: string } })
                 </Link>
                 <div>
                     <h1 className="text-xl font-bold">Devolução / Check-in</h1>
-                    <p className="text-slate-400 text-sm">{vehicle.model.brand.name} {vehicle.model.name}</p>
+                    <p className="text-slate-400 text-sm">{vehicle.model?.brand?.name || ''} {vehicle.model?.name || ''}</p>
                 </div>
             </div>
 

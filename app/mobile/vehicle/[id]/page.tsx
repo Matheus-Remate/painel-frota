@@ -18,7 +18,7 @@ export default async function VehicleMobilePage({ params }: { params: { id: stri
                         <Car className="w-8 h-8 text-emerald-500" />
                     </div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                        {vehicle.model.brand.name} {vehicle.model.name}
+                        {vehicle.model?.brand?.name || ''} {vehicle.model?.name || ''}
                     </h1>
                     <div className="inline-block bg-slate-900 px-3 py-1 rounded text-lg font-mono text-emerald-500 border border-slate-800">
                         {vehicle.license_plate}

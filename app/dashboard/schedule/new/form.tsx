@@ -72,7 +72,7 @@ export default function ReservationForm({ vehicles, drivers }: ReservationFormPr
         const result = await createReservation(formData);
 
         if (result && !result.success) {
-            setError(result.error);
+            setError(result.error || "Erro desconhecido.");
             setLoading(false);
         } else {
             router.push('/dashboard/schedule');

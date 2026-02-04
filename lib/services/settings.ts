@@ -15,7 +15,7 @@ export interface Model {
     id: string;
     brand_id: string;
     name: string;
-    brand?: Brand;
+    brand?: any;
 }
 
 export interface OccurrenceType {
@@ -226,7 +226,7 @@ export async function createUserAccount(formData: FormData) {
         // If user already exists in Auth, let's see if we can just sync the profile
         if (createError.message.includes('already been registered')) {
             const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
-            targetUser = users.find(u => u.email === email);
+            targetUser = users.find(u => u.email === email) || null;
 
             if (!targetUser) {
                 return { success: false, error: createError.message };

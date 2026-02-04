@@ -23,7 +23,8 @@ export async function createVehicle(formData: FormData) {
         .single();
 
     // Safe cast or access
-    const brandName = modelRef?.brand?.name;
+    const brandData = modelRef?.brand as any;
+    const brandName = Array.isArray(brandData) ? brandData[0]?.name : brandData?.name;
 
     if (!brandName) {
         console.error('Brand not found for model:', modelId, modelRef);

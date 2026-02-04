@@ -21,7 +21,9 @@ export async function createVehicle(formData: FormData) {
         .single();
 
     // Safe cast or access
-    const brandName = modelRef?.brand?.name;
+    // Safe cast or access
+    const brandData = modelRef?.brand as any;
+    const brandName = Array.isArray(brandData) ? brandData[0]?.name : brandData?.name;
     const modelName = modelRef?.name;
 
     if (!brandName || !modelName) {

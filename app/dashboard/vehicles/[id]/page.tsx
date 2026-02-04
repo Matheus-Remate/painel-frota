@@ -12,7 +12,7 @@ interface Props {
 
 export default async function VehicleDetailsPage({ params }: Props) {
     const { id } = await params;
-    let vehicle;
+    let vehicle: any;
 
     try {
         vehicle = await getVehicleById(id);
@@ -36,7 +36,10 @@ export default async function VehicleDetailsPage({ params }: Props) {
                     </Link>
                     <div>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                            {vehicle.model?.name || vehicle.model_name || vehicle.model}
+                            {(() => {
+                                const model = (vehicle as any).model;
+                                return Array.isArray(model) ? model[0]?.name : model?.name || vehicle.model_name || vehicle.model;
+                            })()}
                             <span className={`text-sm px-3 py-1 rounded-full border ${vehicle.status === 'IN_YARD' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                                 vehicle.status === 'ON_ROUTE' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                     'bg-amber-500/10 text-amber-400 border-amber-500/20'
@@ -46,7 +49,12 @@ export default async function VehicleDetailsPage({ params }: Props) {
                                 {vehicle.status === 'AWAITING_REPAIR' && 'Manutenção'}
                             </span>
                         </h1>
-                        <p className="text-slate-400 font-mono mt-1 text-lg">{vehicle.license_plate} • {vehicle.model?.brand?.name || vehicle.brand}</p>
+                        <p className="text-slate-400 font-mono mt-1 text-lg">
+                            {vehicle.license_plate} • {(() => {
+                                const brand = (vehicle as any).model?.brand || (vehicle as any).brand;
+                                return Array.isArray(brand) ? brand[0]?.name : brand?.name || '';
+                            })()}
+                        </p>
                     </div>
                 </div>
 

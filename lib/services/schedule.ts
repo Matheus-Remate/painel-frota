@@ -12,15 +12,7 @@ export type Reservation = {
     end_date: string;
     purpose: string;
     status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-    vehicle?: {
-        license_plate: string;
-        model: {
-            name: string;
-            brand: {
-                name: string;
-            };
-        };
-    };
+    vehicle?: any;
     driver?: {
         name: string;
     };
@@ -52,7 +44,7 @@ export const getReservations = cache(async () => {
         .order('start_date', { ascending: true });
 
     if (error) throw error;
-    return data as Reservation[];
+    return (data as unknown) as Reservation[];
 });
 
 export const getReservationById = cache(async (id: string) => {
@@ -82,7 +74,7 @@ export const getReservationById = cache(async (id: string) => {
         .single();
 
     if (error) return null;
-    return data as Reservation;
+    return (data as unknown) as Reservation;
 });
 
 export async function updateReservation(id: string, formData: FormData) {
