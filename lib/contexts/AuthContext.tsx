@@ -48,8 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.warn("Warning: get_my_profile returned no data for authenticated user.");
                 setProfile(null);
             } else {
-                console.log("Success: Profile loaded via RPC:", data.email);
-                setProfile(data as UserProfile | null);
+                const profileData = data as UserProfile;
+                console.log("Success: Profile loaded via RPC:", profileData.email);
+                setProfile(profileData);
             }
         } catch (err) {
             console.error("Exception in fetchProfile:", err);
