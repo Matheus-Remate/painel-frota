@@ -1,28 +1,69 @@
 import { VehicleStatusCards } from '@/components/dashboard/vehicle-status-cards';
 import PendingApprovals from '@/components/dashboard/pending-approvals';
-
 import Link from 'next/link';
 import GanttChart from '@/components/dashboard/gantt-chart';
 import { getReservations } from "@/lib/services/schedule";
 import { getVehicles } from "@/lib/services/dashboard";
 import { getPendingRequests } from "@/lib/services/requests";
+import { Suspense } from 'react';
 
-export default async function DashboardPage() {
+// Specialized components for data fetching
+async function PendingApprovalsSection() {
     const [reservations, vehiclesRaw, pendingRequests] = await Promise.all([
         getReservations(),
         getVehicles(),
         getPendingRequests()
     ]);
 
-    // Simplificar veículos para o componente
     const vehicles = vehiclesRaw.map(v => ({
         id: v.id,
-        model: v.model?.name || v.model_name || v.model, // v.model (legacy) fallback
+        model: v.model?.name || v.model_name || v.model,
         license_plate: v.license_plate,
-        brand: v.model?.brand?.name || v.brand, // v.brand (legacy) fallback
+        brand: v.model?.brand?.name || v.brand,
         model_id: v.model_id
     }));
 
+    return (
+        <PendingApprovals
+            requests={pendingRequests}
+            vehicles={vehicles}
+            reservations={reservations}
+        />
+    );
+}
+
+async function StatusCardsSection() {
+    const [reservations, vehiclesRaw] = await Promise.all([
+        getReservations(),
+        getVehicles()
+    ]);
+
+    return <VehicleStatusCards vehicles={vehiclesRaw} reservations={reservations} />;
+}
+
+async function GanttChartSection() {
+    const [reservations, vehiclesRaw] = await Promise.all([
+        getReservations(),
+        getVehicles()
+    ]);
+
+    const vehicles = vehiclesRaw.map(v => ({
+        id: v.id,
+        model: v.model?.name || v.model_name || v.model,
+        license_plate: v.license_plate,
+        brand: v.model?.brand?.name || v.brand,
+        model_id: v.model_id
+    }));
+
+    return <GanttChart reservations={reservations} vehicles={vehicles} />;
+}
+
+// Loading Skeletons for sections
+function SectionSkeleton({ height = 'h-48' }) {
+    return <div className={`w-full ${height} bg-slate-800/30 animate-pulse rounded-3xl border border-slate-700/50`}></div>;
+}
+
+export default function DashboardPage() {
     return (
         <div className="w-full">
             <div className="container mx-auto py-2">
@@ -38,16 +79,16 @@ export default async function DashboardPage() {
                     </div>
                 </header>
 
-                {/* Pendências de Aprovação (Visível apenas se houver requisições) */}
-                <PendingApprovals
-                    requests={pendingRequests}
-                    vehicles={vehicles}
-                    reservations={reservations}
-                />
+                {/* Pendências de Aprovação */}
+                <Suspense fallback={<SectionSkeleton height="h-32" />}>
+                    <PendingApprovalsSection />
+                </Suspense>
 
                 {/* Cards de Status */}
-                <div className="mb-8">
-                    <VehicleStatusCards vehicles={vehiclesRaw} reservations={reservations} />
+                <div className="mb-8 mt-6">
+                    <Suspense fallback={<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"><SectionSkeleton /><SectionSkeleton /><SectionSkeleton /><SectionSkeleton /></div>}>
+                        <StatusCardsSection />
+                    </Suspense>
                 </div>
 
                 {/* Gantt Chart Preview */}
@@ -58,7 +99,9 @@ export default async function DashboardPage() {
                             Ver tela cheia →
                         </Link>
                     </div>
-                    <GanttChart reservations={reservations} vehicles={vehicles} />
+                    <Suspense fallback={<SectionSkeleton height="h-[300px]" />}>
+                        <GanttChartSection />
+                    </Suspense>
                 </div>
             </div>
         </div>

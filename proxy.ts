@@ -2,10 +2,9 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function proxy(request: NextRequest) {
+    // 1. Basic response setup
     let response = NextResponse.next({
-        request: {
-            headers: request.headers,
-        },
+        request: { headers: request.headers },
     });
 
     const supabase = createServerClient(
@@ -13,21 +12,15 @@ export async function proxy(request: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value;
-                },
+                get(name: string) { return request.cookies.get(name)?.value; },
                 set(name: string, value: string, options: CookieOptions) {
                     request.cookies.set({ name, value, ...options });
-                    response = NextResponse.next({
-                        request: { headers: request.headers },
-                    });
+                    response = NextResponse.next({ request: { headers: request.headers } });
                     response.cookies.set({ name, value, ...options });
                 },
                 remove(name: string, options: CookieOptions) {
                     request.cookies.set({ name, value: '', ...options });
-                    response = NextResponse.next({
-                        request: { headers: request.headers },
-                    });
+                    response = NextResponse.next({ request: { headers: request.headers } });
                     response.cookies.set({ name, value: '', ...options });
                 },
             },
@@ -35,29 +28,36 @@ export async function proxy(request: NextRequest) {
     );
 
     const pathname = request.nextUrl.pathname;
+
+    // 2. Early exit for landing page if no session cookie exists (Avoid heavy getUser)
+    const hasSessionCookie = request.cookies.getAll().some(c => c.name.includes('supabase-auth-token') || c.name.startsWith('sb-'));
     const publicRoutes = ['/login', '/forgot-password', '/reset-password', '/mobile', '/feedback', '/api/auth'];
-    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route)) || pathname === '/';
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
-    // Se for rota pública, podemos retornar mais cedo se não for o login (que queremos redirecionar logados)
-    // Mas para simplificar, vamos apenas garantir que não chamamos getUser() desnecessariamente se for estático
-    // O matcher já cuida de estáticos, mas vamos manter a lógica aqui limpa.
+    if (!hasSessionCookie && isPublicRoute) return response;
+    if (!hasSessionCookie && pathname === '/') return response;
 
+    // 3. User check (Potential bottleneck)
     const { data: { user } } = await supabase.auth.getUser();
 
-    // If not authenticated and trying to access protected route
-    if (!user && !isPublicRoute) {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(loginUrl);
+    // 4. Redirects for unauthenticated users
+    if (!user) {
+        if (!isPublicRoute && pathname !== '/') {
+            const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('redirect', pathname);
+            return NextResponse.redirect(loginUrl);
+        }
+        return response;
     }
 
-    // If authenticated and trying to access login page
-    if (user && pathname === '/login') {
+    // 5. Redirects for already logged users on login page
+    if (pathname === '/login') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // Role-based access control for authenticated users
-    if (user) {
+    // 6. Role-based access control (RBAC) - Optimization: Only fetch if in dashboard
+    if (pathname.startsWith('/dashboard')) {
+        // Fetch profile with selective fields
         const { data: profile } = await supabase
             .from('profiles')
             .select('role')
@@ -66,15 +66,7 @@ export async function proxy(request: NextRequest) {
 
         const userRole = profile?.role;
 
-        // Admin-only routes (none currently - users tab is hidden in UI for gestor)
-        const adminOnlyRoutes: string[] = [];
-        if (adminOnlyRoutes.some(route => pathname.startsWith(route))) {
-            if (userRole !== 'admin') {
-                return NextResponse.redirect(new URL('/dashboard/access-denied', request.url));
-            }
-        }
-
-        // Gestor + Admin routes (including settings for brands/models management)
+        // Gestor + Admin routes
         const gestorRoutes = ['/dashboard/approvals', '/dashboard/vehicles', '/dashboard/drivers', '/dashboard/settings'];
         if (gestorRoutes.some(route => pathname.startsWith(route))) {
             if (userRole !== 'admin' && userRole !== 'gestor') {
@@ -82,13 +74,12 @@ export async function proxy(request: NextRequest) {
             }
         }
 
-        // Solicitante is restricted to requests and profile only
+        // Solicitante specialization
         if (userRole === 'solicitante') {
-            const allowedForSolicitante = ['/dashboard/requests', '/dashboard/profile', '/dashboard/access-denied'];
-            const isAllowed = allowedForSolicitante.some(route => pathname.startsWith(route))
-                || pathname === '/dashboard';
+            const allowedForSolicitante = ['/dashboard/requests', '/dashboard/profile', '/dashboard/access-denied', '/dashboard/occurrences'];
+            const isAllowed = allowedForSolicitante.some(route => pathname.startsWith(route)) || pathname === '/dashboard';
 
-            if (!isAllowed && pathname.startsWith('/dashboard')) {
+            if (!isAllowed) {
                 return NextResponse.redirect(new URL('/dashboard/requests', request.url));
             }
         }
