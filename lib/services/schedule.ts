@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cache } from 'react';
 
 export type Reservation = {
     id: string;
@@ -25,7 +26,7 @@ export type Reservation = {
     };
 };
 
-export async function getReservations() {
+export const getReservations = cache(async () => {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -46,9 +47,9 @@ export async function getReservations() {
 
     if (error) throw error;
     return data as Reservation[];
-}
+});
 
-export async function getReservationById(id: string) {
+export const getReservationById = cache(async (id: string) => {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -70,7 +71,7 @@ export async function getReservationById(id: string) {
 
     if (error) return null;
     return data as Reservation;
-}
+});
 
 export async function updateReservation(id: string, formData: FormData) {
     const supabase = await createClient();

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { cache } from 'react';
 
 // Types
 export interface Brand {
@@ -29,7 +30,7 @@ export interface UsageCategory {
 
 // ============ BRANDS ============
 
-export async function getBrands(): Promise<Brand[]> {
+export const getBrands = cache(async (): Promise<Brand[]> => {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -39,7 +40,7 @@ export async function getBrands(): Promise<Brand[]> {
 
     if (error) throw error;
     return data || [];
-}
+});
 
 export async function createBrand(formData: FormData) {
     const supabase = await createClient();
@@ -92,7 +93,7 @@ export async function deleteBrand(id: string) {
 
 // ============ MODELS ============
 
-export async function getModels(brandId?: string): Promise<Model[]> {
+export const getModels = cache(async (brandId?: string): Promise<Model[]> => {
     const supabase = await createClient();
 
     let query = supabase
@@ -111,7 +112,7 @@ export async function getModels(brandId?: string): Promise<Model[]> {
 
     if (error) throw error;
     return data || [];
-}
+});
 
 export async function createModel(formData: FormData) {
     const supabase = await createClient();
@@ -166,7 +167,7 @@ export async function deleteModel(id: string) {
 
 // ============ USERS (Admin Only) ============
 
-export async function getUsers() {
+export const getUsers = cache(async () => {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -176,7 +177,7 @@ export async function getUsers() {
 
     if (error) throw error;
     return data || [];
-}
+});
 
 export async function createUserAccount(formData: FormData) {
     const supabase = await createClient();
@@ -457,11 +458,11 @@ export async function deleteUser(userId: string) {
 
 // ============ OCCURRENCE TYPES ============
 
-export async function getOccurrenceTypes() {
+export const getOccurrenceTypes = cache(async () => {
     const supabase = await createClient();
     const { data } = await supabase.from('occurrence_types').select('*').order('name');
     return (data as OccurrenceType[]) || [];
-}
+});
 
 export async function createOccurrenceType(formData: FormData) {
     const supabase = await createClient();
@@ -487,11 +488,11 @@ export async function deleteOccurrenceType(id: string) {
 
 // ============ USAGE CATEGORIES ============
 
-export async function getUsageCategories(): Promise<UsageCategory[]> {
+export const getUsageCategories = cache(async (): Promise<UsageCategory[]> => {
     const supabase = await createClient();
     const { data } = await supabase.from('usage_categories').select('*').order('name');
     return (data as UsageCategory[]) || [];
-}
+});
 
 export async function createUsageCategory(formData: FormData) {
     const supabase = await createClient();

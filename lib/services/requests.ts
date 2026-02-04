@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { cache } from 'react';
 
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'DENIED' | 'CANCELLED';
 
@@ -166,7 +167,7 @@ export async function getMyRequests(): Promise<VehicleRequest[]> {
 /**
  * Get pending requests (Gestor/Admin view)
  */
-export async function getPendingRequests(): Promise<VehicleRequest[]> {
+export const getPendingRequests = cache(async (): Promise<VehicleRequest[]> => {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -181,12 +182,12 @@ export async function getPendingRequests(): Promise<VehicleRequest[]> {
 
     if (error) throw error;
     return data as VehicleRequest[] || [];
-}
+});
 
 /**
  * Get all requests (Gestor/Admin view)
  */
-export async function getAllRequests(): Promise<VehicleRequest[]> {
+export const getAllRequests = cache(async (): Promise<VehicleRequest[]> => {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -208,7 +209,7 @@ export async function getAllRequests(): Promise<VehicleRequest[]> {
 
     if (error) throw error;
     return data as VehicleRequest[] || [];
-}
+});
 
 /**
  * Approve a request and assign a vehicle (Gestor/Admin)

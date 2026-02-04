@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { cache } from 'react';
 
 export async function resolveCheckin(id: string, notes: string) {
     const supabase = await createClient();
@@ -32,7 +33,7 @@ export async function resolveCheckin(id: string, notes: string) {
     return { success: true };
 }
 
-export async function getVehicles() {
+export const getVehicles = cache(async () => {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('vehicles')
@@ -49,9 +50,9 @@ export async function getVehicles() {
 
     if (error) throw error;
     return data;
-}
+});
 
-export async function getVehicleById(id: string) {
+export const getVehicleById = cache(async (id: string) => {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('vehicles')
@@ -87,9 +88,9 @@ export async function getVehicleById(id: string) {
     }
 
     return data;
-}
+});
 
-export async function getDrivers() {
+export const getDrivers = cache(async () => {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('drivers')
@@ -99,9 +100,9 @@ export async function getDrivers() {
 
     if (error) throw error;
     return data;
-}
+});
 
-export async function getCheckins() {
+export const getCheckins = cache(async () => {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('check_ins')
@@ -120,4 +121,4 @@ export async function getCheckins() {
 
     if (error) throw error;
     return data;
-}
+});
