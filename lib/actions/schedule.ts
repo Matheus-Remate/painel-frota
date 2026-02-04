@@ -22,6 +22,19 @@ export async function createReservation(formData: FormData) {
         return { success: false, error: "A data final deve ser posterior à data inicial." };
     }
 
+    // Verificar conflitos de horário para o mesmo veículo
+    const { data: conflicts } = await supabase
+        .from("reservations")
+        .select("id")
+        .eq("vehicle_id", vehicle_id)
+        .neq("status", "CANCELLED")
+        .lt("start_date", end_date) // Existing start < New end
+        .gt("end_date", start_date); // Existing end > New start
+
+    if (conflicts && conflicts.length > 0) {
+        return { success: false, error: "Já existe uma reserva para este veículo neste horário." };
+    }
+
     try {
         const { error } = await supabase
             .from("reservations")
@@ -45,7 +58,7 @@ export async function createReservation(formData: FormData) {
     }
 
     revalidatePath("/dashboard/schedule");
-    redirect("/dashboard/schedule");
+    return { success: true };
 }
 
 export async function cancelReservation(id: string) {
@@ -66,4 +79,26 @@ export async function cancelReservation(id: string) {
 
     revalidatePath("/dashboard/schedule");
     return { success: true };
+}
+
+export async function checkAvailability(start_date: string, end_date: string) {
+    const supabase = await createClient();
+
+    // 1. Find all reservations that overlap with the requested period
+    const { data: conflicts, error } = await supabase
+        .from("reservations")
+        .select("vehicle_id")
+        .neq("status", "CANCELLED")
+        .lt("start_date", end_date)
+        .gt("end_date", start_date);
+
+    if (error) {
+        console.error("Error checking availability:", error);
+        return { success: false, error: error.message };
+    }
+
+    // Extract IDs of busy vehicles
+    const busyVehicleIds = conflicts.map(r => r.vehicle_id);
+
+    return { success: true, busyVehicleIds };
 }

@@ -17,9 +17,9 @@ async function PendingApprovalsSection() {
 
     const vehicles = vehiclesRaw.map(v => ({
         id: v.id,
-        model: v.model?.name || v.model_name || v.model,
+        model: v.model?.name || '',
         license_plate: v.license_plate,
-        brand: v.model?.brand?.name || v.brand,
+        brand: v.model?.brand?.name || '',
         model_id: v.model_id
     }));
 
@@ -49,9 +49,9 @@ async function GanttChartSection() {
 
     const vehicles = vehiclesRaw.map(v => ({
         id: v.id,
-        model: v.model?.name || v.model_name || v.model,
+        model: v.model?.name || '',
         license_plate: v.license_plate,
-        brand: v.model?.brand?.name || v.brand,
+        brand: v.model?.brand?.name || '',
         model_id: v.model_id
     }));
 

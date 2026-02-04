@@ -8,8 +8,30 @@ export async function createVehicle(formData: FormData) {
     // Usa cliente Admin para ignorar RLS temporariamente (já que é painel interno)
     const supabase = createAdminClient();
 
+    const modelId = formData.get('modelId') as string;
+
+    // Fetch Model to get Brand Name (Legacy/Denormalized requirement)
+    const { data: modelRef } = await supabase
+        .from('models')
+        .select(`
+            name,
+            brand:brands(name)
+        `)
+        .eq('id', modelId)
+        .single();
+
+    // Safe cast or access
+    const brandName = modelRef?.brand?.name;
+    const modelName = modelRef?.name;
+
+    if (!brandName || !modelName) {
+        return { success: false, error: 'Erro interno: Marca ou Modelo não encontrados. Verifique o cadastro.' };
+    }
+
     const rawData = {
-        model_id: formData.get('modelId') as string,
+        model_id: modelId,
+        brand: brandName, // Required by DB constraint
+        model: modelName, // Required by DB constraint (Legacy)
         license_plate: formData.get('license_plate') as string,
         chassis: formData.get('chassis') as string || '0',
         renavam: formData.get('renavam') as string || '0',
@@ -35,7 +57,7 @@ export async function createVehicle(formData: FormData) {
     }
 
     revalidatePath('/dashboard/vehicles');
-    redirect('/dashboard/vehicles');
+    return { success: true };
 }
 
 export async function deleteVehicle(vehicleId: string) {

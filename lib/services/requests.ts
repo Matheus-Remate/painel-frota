@@ -31,9 +31,13 @@ export interface VehicleRequest {
     };
     vehicle?: {
         id: string;
-        brand: string;
-        model: string;
         license_plate: string;
+        model?: {
+            name: string;
+            brand: {
+                name: string;
+            };
+        };
     };
     requester?: {
         first_name: string;
@@ -146,7 +150,17 @@ export async function getMyRequests(): Promise<VehicleRequest[]> {
     const { data, error } = await supabase
         .from('vehicle_requests')
         .select(`
-            *,
+            id,
+            requester_id,
+            model_id,
+            model_name,
+            event_name,
+            pickup_datetime,
+            return_datetime,
+            driver_name,
+            status,
+            vehicle_id,
+            created_at,
             model:models(name, brand:brands(name)),
             vehicle:vehicles(
                 id, 
@@ -173,7 +187,17 @@ export const getPendingRequests = cache(async (): Promise<VehicleRequest[]> => {
     const { data, error } = await supabase
         .from('vehicle_requests')
         .select(`
-            *,
+            id,
+            requester_id,
+            model_id,
+            model_name,
+            event_name,
+            pickup_datetime,
+            return_datetime,
+            driver_id,
+            driver_name,
+            status,
+            created_at,
             model:models(name, brand:brands(name)),
             requester:profiles!requester_id(first_name, last_name, email)
         `)
@@ -193,7 +217,18 @@ export const getAllRequests = cache(async (): Promise<VehicleRequest[]> => {
     const { data, error } = await supabase
         .from('vehicle_requests')
         .select(`
-            *,
+            id,
+            requester_id,
+            model_id,
+            model_name,
+            event_name,
+            pickup_datetime,
+            return_datetime,
+            driver_id,
+            driver_name,
+            status,
+            vehicle_id,
+            created_at,
             model:models(name, brand:brands(name)),
             vehicle:vehicles(
                 id, 
@@ -236,7 +271,22 @@ export async function approveRequest(requestId: string, vehicleId: string) {
     // Get the request details
     const { data: request } = await supabase
         .from('vehicle_requests')
-        .select('*')
+        .select(`
+            id,
+            requester_id,
+            model_id,
+            model_name,
+            event_name,
+            pickup_datetime,
+            return_datetime,
+            driver_id,
+            driver_name,
+            status,
+            vehicle_id,
+            approved_by,
+            denial_reason,
+            created_at
+        `)
         .eq('id', requestId)
         .single();
 
@@ -350,7 +400,15 @@ export async function getAvailableVehicles(modelId: string | null, pickupDate: s
     const { data: vehicles } = await supabase
         .from('vehicles')
         .select(`
-            *,
+            id,
+            license_plate,
+            chassis,
+            year,
+            fuel_type,
+            color,
+            status,
+            usage_category,
+            model_id,
             model:models(
                 id,
                 name,
@@ -509,7 +567,18 @@ export async function getRequestById(id: string) {
     const { data, error } = await supabase
         .from('vehicle_requests')
         .select(`
-            *,
+            id,
+            requester_id,
+            model_id,
+            model_name,
+            event_name,
+            pickup_datetime,
+            return_datetime,
+            driver_id,
+            driver_name,
+            status,
+            vehicle_id,
+            created_at,
             model:models(id, name, brand:brands(name))
         `)
         .eq('id', id)

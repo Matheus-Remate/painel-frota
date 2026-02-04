@@ -20,7 +20,7 @@ interface Vehicle {
     model_name?: string; // fallback
 }
 
-export default function NewCheckinForm({ vehicles }: { vehicles: Vehicle[] }) {
+export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
     const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
     const [search, setSearch] = useState('');
 

@@ -56,6 +56,8 @@ export default function NewVehiclePage() {
             if (result && !result.success) {
                 setError(result.error || "Erro desconhecido ao criar veículo");
                 setLoading(false);
+            } else if (result?.success) {
+                router.push('/dashboard/vehicles');
             }
         } catch (e) {
             console.error(e);

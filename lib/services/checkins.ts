@@ -10,6 +10,7 @@ export async function createCheckin(formData: FormData) {
     const vehicleId = formData.get('vehicleId') as string;
     const odometer = parseInt(formData.get('odometer') as string);
     const notes = formData.get('notes') as string;
+    const fuelLevel = formData.get('fuelLevel') as string; // 'EMPTY', '1/4', '1/2', '3/4', 'FULL'
 
     // Check statuses
     // status_0 = Limpeza, status_1 = Lataria/Pneus, status_2 = Luzes painel
@@ -26,6 +27,30 @@ export async function createCheckin(formData: FormData) {
     const dashLights = formData.get('status_2') === 'OK' ? 'OK' : 'ALERT';
 
     const hasIssues = cleanliness !== 'OK' || tiresExterior !== 'OK' || dashLights !== 'OK';
+
+    // Handle Photos Upload
+    const photoFiles = formData.getAll('photos').filter(item => item instanceof File) as File[];
+    const photoUrls: string[] = [];
+
+    if (photoFiles.length > 0) {
+        for (const file of photoFiles) {
+            if (file.size === 0) continue;
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${vehicleId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage
+                .from('checkin-photos')
+                .upload(fileName, file);
+
+            if (!uploadError) {
+                const { data: { publicUrl } } = supabase.storage
+                    .from('checkin-photos')
+                    .getPublicUrl(fileName);
+                photoUrls.push(publicUrl);
+            } else {
+                console.error('Error uploading photo:', uploadError);
+            }
+        }
+    }
 
     // Get current user (driver/admin doing the checkin)
     const { data: { user } } = await supabase.auth.getUser();
@@ -52,6 +77,8 @@ export async function createCheckin(formData: FormData) {
         dash_lights_status: dashLights,
         repair_notes: notes,
         has_issues: hasIssues,
+        fuel_level: fuelLevel,
+        photos: photoUrls,
         checked_in_at: new Date().toISOString(),
     };
 

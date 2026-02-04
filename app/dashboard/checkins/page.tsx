@@ -122,11 +122,28 @@ function CheckinCard({ checkin, isAlert }: { checkin: any, isAlert: boolean }) {
                         </div>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-4">
                         <StatusItem label="Limpeza" status={checkin.cleanliness_status} />
                         <StatusItem label="Luzes Painel" status={checkin.dash_lights_status} />
                         <StatusItem label="Pneus/Lataria" status={checkin.tires_exterior_status} />
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-slate-700 bg-slate-800/50">
+                            <span className="text-slate-300 font-medium text-sm">Combustível</span>
+                            <span className="text-xs font-bold text-emerald-400">{checkin.fuel_level || 'N/A'}</span>
+                        </div>
                     </div>
+
+                    {checkin.photos && checkin.photos.length > 0 && (
+                        <div className="mt-4">
+                            <h4 className="text-slate-400 text-xs font-bold mb-2 uppercase tracking-wider">Fotos Anexadas</h4>
+                            <div className="flex gap-2 overflow-x-auto pb-2">
+                                {checkin.photos.map((photo: string, index: number) => (
+                                    <a href={photo} target="_blank" rel="noopener noreferrer" key={index} className="block w-20 h-20 rounded-lg overflow-hidden border border-slate-700 hover:border-emerald-500 transition-colors shrink-0">
+                                        <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${photo})` }} />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {checkin.has_issues && (
                         <div className="mt-6 bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">

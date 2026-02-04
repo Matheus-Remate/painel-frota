@@ -32,7 +32,13 @@ export const getReservations = cache(async () => {
     const { data, error } = await supabase
         .from('reservations')
         .select(`
-            *,
+            id,
+            vehicle_id,
+            driver_id,
+            start_date,
+            end_date,
+            purpose,
+            status,
             vehicle:vehicles(
                 license_plate,
                 model:models(
@@ -55,7 +61,13 @@ export const getReservationById = cache(async (id: string) => {
     const { data, error } = await supabase
         .from('reservations')
         .select(`
-            *,
+            id,
+            vehicle_id,
+            driver_id,
+            start_date,
+            end_date,
+            purpose,
+            status,
             vehicle:vehicles(
                 id,
                 license_plate,

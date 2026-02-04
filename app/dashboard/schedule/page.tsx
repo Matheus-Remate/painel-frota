@@ -14,8 +14,8 @@ export default async function SchedulePage() {
     // Simplificar veículos para o componente
     const vehicles = vehiclesRaw.map(v => ({
         id: v.id,
-        model: v.model?.name || v.model_name || v.model, // v.model (legacy) fallback
-        brand: v.model?.brand?.name || v.brand, // v.brand (legacy) fallback
+        model: v.model?.name || '',
+        brand: v.model?.brand?.name || '',
         license_plate: v.license_plate
     }));
 

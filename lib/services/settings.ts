@@ -35,7 +35,7 @@ export const getBrands = cache(async (): Promise<Brand[]> => {
 
     const { data, error } = await supabase
         .from('brands')
-        .select('*')
+        .select('id, name')
         .order('name', { ascending: true });
 
     if (error) throw error;
@@ -99,7 +99,9 @@ export const getModels = cache(async (brandId?: string): Promise<Model[]> => {
     let query = supabase
         .from('models')
         .select(`
-            *,
+            id,
+            brand_id,
+            name,
             brand:brands(id, name)
         `)
         .order('name', { ascending: true });
@@ -172,7 +174,7 @@ export const getUsers = cache(async () => {
 
     const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, user_id, first_name, last_name, email, role, avatar_url, created_at')
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -460,7 +462,7 @@ export async function deleteUser(userId: string) {
 
 export const getOccurrenceTypes = cache(async () => {
     const supabase = await createClient();
-    const { data } = await supabase.from('occurrence_types').select('*').order('name');
+    const { data } = await supabase.from('occurrence_types').select('id, name').order('name');
     return (data as OccurrenceType[]) || [];
 });
 
@@ -490,7 +492,7 @@ export async function deleteOccurrenceType(id: string) {
 
 export const getUsageCategories = cache(async (): Promise<UsageCategory[]> => {
     const supabase = await createClient();
-    const { data } = await supabase.from('usage_categories').select('*').order('name');
+    const { data } = await supabase.from('usage_categories').select('id, name').order('name');
     return (data as UsageCategory[]) || [];
 });
 
@@ -500,7 +502,12 @@ export async function createUsageCategory(formData: FormData) {
 
     const { error } = await supabase.from('usage_categories').insert({ name });
 
-    if (error) return { success: false, error: 'Erro ao criar categoria: ' + error.message };
+    if (error) {
+        if (error.code === '23505') {
+            return { success: false, error: 'Esta categoria já existe.' };
+        }
+        return { success: false, error: 'Erro ao criar categoria: ' + error.message };
+    }
 
     revalidatePath('/dashboard/settings');
     return { success: true };

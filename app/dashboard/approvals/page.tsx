@@ -50,7 +50,7 @@ export default function ApprovalsPage() {
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [showDenyModal, setShowDenyModal] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<VehicleRequest | null>(null);
-    const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
+    const [availableVehicles, setAvailableVehicles] = useState<any[]>([]);
     const [vehiclesLoading, setVehiclesLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [denyReason, setDenyReason] = useState('');

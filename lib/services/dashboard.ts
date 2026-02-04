@@ -38,7 +38,15 @@ export const getVehicles = cache(async () => {
     const { data, error } = await supabase
         .from('vehicles')
         .select(`
-            *,
+            id,
+            license_plate,
+            chassis,
+            year,
+            fuel_type,
+            color,
+            status,
+            usage_category,
+            model_id,
             model:models(
                 id,
                 name,
@@ -57,7 +65,15 @@ export const getVehicleById = cache(async (id: string) => {
     const { data, error } = await supabase
         .from('vehicles')
         .select(`
-        *,
+        id,
+        license_plate,
+        chassis,
+        year,
+        fuel_type,
+        color,
+        status,
+        usage_category,
+        model_id,
         model:models(
             id,
             name,
@@ -94,7 +110,7 @@ export const getDrivers = cache(async () => {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('drivers')
-        .select('*')
+        .select('id, name, cpf, cnh_category, cnh_expiration')
         .is('deleted_at', null)
         .order('name', { ascending: true });
 
@@ -107,7 +123,20 @@ export const getCheckins = cache(async () => {
     const { data, error } = await supabase
         .from('check_ins')
         .select(`
-      *,
+      id,
+      vehicle_id,
+      driver_id,
+      odometer,
+      has_issues,
+      checked_in_at,
+      cleanliness_status,
+      dash_lights_status,
+      tires_exterior_status,
+      fuel_level,
+      photos,
+      repair_notes,
+      resolved,
+      resolution_notes,
       vehicle:vehicles(
         license_plate,
         model:models(

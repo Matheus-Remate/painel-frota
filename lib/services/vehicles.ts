@@ -13,11 +13,29 @@ export async function createVehicle(formData: FormData) {
     const fuelType = formData.get('fuelType') as string;
     const usageCategory = formData.get('usageCategory') as string;
 
+    // Fetch Model to get Brand Name (Legacy/Denormalized requirement)
+    const { data: modelRef } = await supabase
+        .from('models')
+        .select(`
+            brand:brands(name)
+        `)
+        .eq('id', modelId)
+        .single();
+
+    // Safe cast or access
+    const brandName = modelRef?.brand?.name;
+
+    if (!brandName) {
+        console.error('Brand not found for model:', modelId, modelRef);
+        return { success: false, error: 'Erro interno: Marca do veículo não encontrada. Verifique o modelo selecionado.' };
+    }
+
     const { error } = await supabase
         .from('vehicles')
         .insert({
             license_plate: licensePlate,
             model_id: modelId,
+            brand: brandName, // Required by DB constraint
             year,
             fuel_type: fuelType,
             usage_category: usageCategory,
