@@ -206,28 +206,39 @@ export default function EditVehiclePage() {
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
                             />
                         </div>
-                        <option value="Elétrico">Elétrico</option>
-                    </select>
+                        <div className="space-y-2">
+                            <label htmlFor="fuel_type" className="text-sm font-medium text-slate-300">Combustível</label>
+                            <select
+                                name="fuel_type"
+                                defaultValue={vehicle.fuel_type}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                            >
+                                <option value="Diesel">Diesel</option>
+                                <option value="Gasolina">Gasolina</option>
+                                <option value="Etanol">Etanol</option>
+                                <option value="Flex">Flex</option>
+                                <option value="Elétrico">Elétrico</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="usage_category" className="text-sm font-medium text-slate-300">Tipo de Uso</label>
+                            <select
+                                name="usage_category"
+                                required
+                                defaultValue={vehicle.usage_category}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
+                            >
+                                <option value="">Selecione o tipo</option>
+                                {usageCategories.map(cat => (
+                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <label htmlFor="usage_category" className="text-sm font-medium text-slate-300">Tipo de Uso</label>
-                    <select
-                        name="usage_category"
-                        required
-                        defaultValue={vehicle.usage_category}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none"
-                    >
-                        <option value="">Selecione o tipo</option>
-                        {usageCategories.map(cat => (
-                            <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                    </select>
-                </div>
-        </div>
-                </div >
 
-        {/* Status */ }
-        < div className = "space-y-4" >
+                {/* Status */}
+                <div className="space-y-4">
                     <h2 className="text-lg font-semibold text-emerald-400 border-b border-slate-700 pb-2">Status</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -243,10 +254,10 @@ export default function EditVehiclePage() {
                             </select>
                         </div>
                     </div>
-                </div >
+                </div>
 
-        {/* Documentação */ }
-        < div className = "space-y-4" >
+                {/* Documentação */}
+                <div className="space-y-4">
                     <h2 className="text-lg font-semibold text-emerald-400 border-b border-slate-700 pb-2">Documentação</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -266,23 +277,23 @@ export default function EditVehiclePage() {
                             />
                         </div>
                     </div>
-                </div >
+                </div>
 
-        <div className="pt-6 flex justify-end gap-3">
-            <Link href={`/dashboard/vehicles/${vehicleId}`} className="px-6 py-2.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors font-medium">
-                Cancelar
-            </Link>
-            <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                {loading ? 'Salvando...' : 'Salvar Alterações'}
-            </button>
+                <div className="pt-6 flex justify-end gap-3">
+                    <Link href={`/dashboard/vehicles/${vehicleId}`} className="px-6 py-2.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors font-medium">
+                        Cancelar
+                    </Link>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                        {loading ? 'Salvando...' : 'Salvar Alterações'}
+                    </button>
+                </div>
+
+            </form>
         </div>
-
-            </form >
-        </div >
     );
 }
