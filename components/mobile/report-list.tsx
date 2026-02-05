@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, AlertCircle, CheckCircle2, MessageSquare } from
 interface Report {
     id: string;
     checked_in_at: string;
-    driver?: { name: string };
+    driver?: any;
     has_issues: boolean;
     resolved: boolean;
     resolved_at?: string;

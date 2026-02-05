@@ -110,5 +110,9 @@ export async function getVehicleHistory(vehicleId: string) {
         return [];
     }
 
-    return history;
+    // Garantir que driver seja um objeto simples (Supabase pode retornar array em joins)
+    return (history || []).map(item => ({
+        ...item,
+        driver: Array.isArray(item.driver) ? item.driver[0] : item.driver
+    }));
 }
