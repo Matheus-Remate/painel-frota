@@ -2,167 +2,270 @@
 
 import { createCheckin } from "@/lib/services/checkins";
 import { useState } from "react";
-import { Camera, Upload, Check, AlertTriangle, Fuel, Gauge } from "lucide-react";
+import { Camera, Check, AlertTriangle, Gauge, Fuel, Send, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+const CHECKLIST_ITEMS = [
+    { id: 'limpeza', label: 'Limpeza Interna' },
+    { id: 'motor', label: 'Estado do Motor' },
+    { id: 'pneus', label: 'Pneus e Lataria' },
+    { id: 'freios', label: 'Freios' },
+    { id: 'outros', label: 'Outros Itens' }
+];
+
+interface ChecklistState {
+    [key: string]: {
+        status: 'OK' | 'REVIEW';
+        notes?: string;
+        photo?: File | null;
+    }
+}
 
 export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: string, lastOdometer: number }) {
     const [submitting, setSubmitting] = useState(false);
-    const [hasIssues, setHasIssues] = useState(false);
-    const [photos, setPhotos] = useState<File[]>([]);
+    const [checklist, setChecklist] = useState<ChecklistState>(
+        CHECKLIST_ITEMS.reduce((acc, item) => ({ ...acc, [item.id]: { status: 'OK' } }), {})
+    );
+    const router = useRouter();
+
+    const handleStatusChange = (id: string, status: 'OK' | 'REVIEW') => {
+        setChecklist(prev => ({
+            ...prev,
+            [id]: { ...prev[id], status }
+        }));
+    };
+
+    const handleNoteChange = (id: string, note: string) => {
+        setChecklist(prev => ({
+            ...prev,
+            [id]: { ...prev[id], notes: note }
+        }));
+    };
+
+    const handlePhotoChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setChecklist(prev => ({
+                ...prev,
+                [id]: { ...prev[id], photo: e.target.files![0] }
+            }));
+        }
+    };
+
+    const [isSuccess, setIsSuccess] = useState(false);
 
     async function handleSubmit(formData: FormData) {
         setSubmitting(true);
         try {
-            await createCheckin(formData);
-            // Redirect happens in server action usually, but if not we can handle it here.
+            // Prepare dynamic checklist data
+            const checklistData: any = {};
+
+            // Append files and build JSON
+            Object.entries(checklist).forEach(([key, value]) => {
+                checklistData[key] = {
+                    status: value.status,
+                    notes: value.notes || ''
+                };
+
+                // Add specific photos to formData with unique names
+                if (value.photo) {
+                    formData.append(`photo_${key}`, value.photo);
+                }
+            });
+
+            // Add the JSON blob
+            formData.append('checklist', JSON.stringify(checklistData));
+
+            // Legacy mapping
+            formData.append('status_0', checklist['limpeza']?.status === 'OK' ? 'OK' : 'ISSUE');
+            formData.append('status_1', checklist['pneus']?.status === 'OK' ? 'OK' : 'ISSUE');
+            formData.append('status_2', 'OK');
+
+            const result = await createCheckin(formData, lastOdometer);
+
+            if (result.success) {
+                setIsSuccess(true);
+                // Redirect after a short delay
+                setTimeout(() => {
+                    router.push(`/mobile/vehicle/${vehicleId}?success=true`);
+                }, 2000);
+            } else {
+                alert(result.error || 'Erro ao enviar. Tente novamente.');
+                setSubmitting(false);
+            }
         } catch (e) {
             console.error(e);
-            alert('Erro ao enviar check-in. Tente novamente.');
+            alert('Falha na comunicação com o servidor.');
             setSubmitting(false);
         }
     }
 
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setPhotos(Array.from(e.target.files));
-        }
-    };
+    if (isSuccess) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-in fade-in zoom-in duration-300">
+                <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <Check className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold">Check-in Realizado!</h2>
+                <p className="text-slate-400">Obrigado. O veículo está liberado.</p>
+                <p className="text-xs text-slate-500 pt-10">Redirecionando...</p>
+            </div>
+        );
+    }
 
     return (
-        <form action={handleSubmit} className="space-y-6">
+        <form action={handleSubmit} className="space-y-8 pb-10">
             <input type="hidden" name="vehicleId" value={vehicleId} />
 
-            {/* Odometer */}
-            <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                    <Gauge className="w-4 h-4 text-brand" />
-                    Odômetro Atual (km)
+            {/* 0. Identificação */}
+            <div className="bg-slate-900 rounded-xl p-5 border border-slate-800 space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-white">
+                    <User className="w-5 h-5 text-indigo-500" />
+                    Nome do Condutor
                 </label>
                 <input
-                    type="number"
-                    name="odometer"
-                    placeholder={lastOdometer ? `Maior que ${lastOdometer}` : "000000"}
+                    type="text"
+                    name="driverName"
+                    placeholder="Seu nome completo"
                     required
-                    min={lastOdometer}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand focus:outline-none"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-lg text-white placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
             </div>
 
-            {/* Fuel Level */}
-            <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                    <Fuel className="w-4 h-4 text-brand" />
-                    Nível de Combustível
-                </label>
-                <div className="grid grid-cols-5 gap-2">
-                    {['EMPTY', '1/4', '1/2', '3/4', 'FULL'].map((level) => (
-                        <div key={level}>
-                            <input
-                                type="radio"
-                                name="fuelLevel"
-                                value={level}
-                                id={`fuel-${level}`}
-                                className="peer hidden"
-                                required
-                            />
-                            <label
-                                htmlFor={`fuel-${level}`}
-                                className="block text-center text-xs py-2 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 peer-checked:bg-brand-950 peer-checked:text-white peer-checked:border-brand transition-all cursor-pointer"
-                            >
-                                {level === 'EMPTY' ? 'E' : level === 'FULL' ? 'F' : level}
+            {/* 1. Odômetro e Combustível (Critical Data) */}
+            <div className="bg-slate-900 rounded-xl p-5 border border-slate-800 space-y-6">
+                <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Dados do Veículo</h3>
+
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-white">
+                        <Gauge className="w-5 h-5 text-emerald-500" />
+                        Odômetro Final (km)
+                    </label>
+                    <input
+                        type="number"
+                        name="odometer"
+                        placeholder={`Mínimo: ${lastOdometer || 0}`}
+                        required
+                        min={lastOdometer}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-lg text-white font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                </div>
+
+                <div className="space-y-4">
+                    <label className="flex items-center gap-2 text-sm font-medium text-white">
+                        <Fuel className="w-5 h-5 text-amber-500" />
+                        Nível de Combustível
+                    </label>
+                    <div className="grid grid-cols-5 gap-2">
+                        {[
+                            { val: 'EMPTY', label: 'E' },
+                            { val: '1/4', label: '1/4' },
+                            { val: '1/2', label: '1/2' },
+                            { val: '3/4', label: '3/4' },
+                            { val: 'FULL', label: 'F' }
+                        ].map((level) => (
+                            <label key={level.val} className="cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="fuelLevel"
+                                    value={level.val}
+                                    className="peer hidden"
+                                />
+                                <div className="text-center py-4 rounded-xl bg-slate-950 border-2 border-slate-800 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-400 text-sm font-bold text-slate-500 transition-all active:scale-95">
+                                    {level.label}
+                                </div>
                             </label>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            {/* Status Checklist */}
-            <div className="space-y-4 pt-4 border-t border-slate-800">
-                <h3 className="text-sm font-semibold text-slate-400">Verificação Rápida</h3>
+            {/* 2. Checklist Dinâmico */}
+            <div className="space-y-4">
+                <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider px-2">Checklist de Entrega</h3>
 
-                {[
-                    { name: 'status_0', label: 'Limpeza Interna' },
-                    { name: 'status_1', label: 'Lataria e Pneus' },
-                    { name: 'status_2', label: 'Luzes do Painel' }
-                ].map((item) => (
-                    <div key={item.name} className="flex items-center justify-between bg-slate-900 p-3 rounded-lg border border-slate-800">
-                        <span className="text-sm text-slate-300">{item.label}</span>
-                        <div className="flex bg-slate-800 rounded p-1">
-                            <label className="cursor-pointer">
-                                <input type="radio" name={item.name} value="OK" defaultChecked className="peer hidden" />
-                                <div className="px-3 py-1 rounded text-xs font-bold text-slate-500 peer-checked:bg-brand peer-checked:text-white transition-all">OK</div>
-                            </label>
-                            <label className="cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name={item.name}
-                                    value="ISSUE"
-                                    className="peer hidden"
-                                    onChange={(e) => { if (e.target.checked) setHasIssues(true) }}
-                                />
-                                <div className="px-3 py-1 rounded text-xs font-bold text-slate-500 peer-checked:bg-amber-500 peer-checked:text-white transition-all">!</div>
-                            </label>
+                {CHECKLIST_ITEMS.map((item) => (
+                    <div key={item.id} className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+                        <div className="p-4 flex items-center justify-between">
+                            <span className="font-medium text-slate-200">{item.label}</span>
+
+                            <div className="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
+                                <button
+                                    type="button"
+                                    onClick={() => handleStatusChange(item.id, 'OK')}
+                                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${checklist[item.id].status === 'OK'
+                                        ? 'bg-emerald-600 text-white shadow-lg'
+                                        : 'text-slate-500 hover:text-slate-300'
+                                        }`}
+                                >
+                                    OK
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleStatusChange(item.id, 'REVIEW')}
+                                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${checklist[item.id].status === 'REVIEW'
+                                        ? 'bg-amber-600 text-white shadow-lg'
+                                        : 'text-slate-500 hover:text-slate-300'
+                                        }`}
+                                >
+                                    Revisar
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Expandable Area for Issues */}
+                        {checklist[item.id].status === 'REVIEW' && (
+                            <div className="p-4 pt-0 animate-in slide-in-from-top-2 duration-200 space-y-3">
+                                <textarea
+                                    placeholder={`Descreva o problema com ${item.label}...`}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                                    rows={2}
+                                    onChange={(e) => handleNoteChange(item.id, e.target.value)}
+                                    required
+                                />
+
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id={`camera-${item.id}`}
+                                        accept="image/*"
+                                        capture="environment"
+                                        className="hidden"
+                                        onChange={(e) => handlePhotoChange(item.id, e)}
+                                    />
+                                    <label
+                                        htmlFor={`camera-${item.id}`}
+                                        className={`flex items-center justify-center gap-2 w-full p-3 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${checklist[item.id].photo
+                                            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
+                                            : 'border-slate-700 hover:bg-slate-800 text-slate-400'
+                                            }`}
+                                    >
+                                        <Camera className="w-5 h-5" />
+                                        <span className="text-sm font-medium">
+                                            {checklist[item.id].photo
+                                                ? 'Foto anexada (Toque para trocar)'
+                                                : 'Tirar Foto do Problema'}
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
 
-            {/* Issues / Notes */}
-            <div className="space-y-2 pt-2">
-                <label className="text-sm font-medium text-slate-300">Observações / Problemas</label>
-                <textarea
-                    name="notes"
-                    rows={3}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none placeholder:text-slate-600"
-                    placeholder="Descreva qualquer problema encontrado..."
-                ></textarea>
-            </div>
-
-            {/* Photos */}
-            <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                    <Camera className="w-4 h-4 text-brand" />
-                    Fotos (Opcional)
-                </label>
-                <div className="relative">
-                    <input
-                        type="file"
-                        name="photos"
-                        multiple
-                        accept="image/*"
-                        onChange={handlePhotoChange}
-                        className="hidden"
-                        id="photo-upload"
-                    />
-                    <label
-                        htmlFor="photo-upload"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-700 rounded-xl hover:bg-slate-800/50 cursor-pointer transition-colors"
-                    >
-                        <Upload className="w-8 h-8 text-slate-500 mb-2" />
-                        <span className="text-xs text-slate-500">Toque para adicionar fotos</span>
-                    </label>
-                    {photos.length > 0 && (
-                        <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
-                            {photos.map((p, i) => (
-                                <div key={i} className="bg-slate-800 px-2 py-1 rounded text-xs text-slate-300 whitespace-nowrap border border-slate-700">
-                                    {p.name.substring(0, 15)}...
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Submit */}
-            <div className="pt-4">
+            {/* 3. Submit Button */}
+            <div className="pt-10 pb-10">
                 <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-brand-950 hover:bg-brand disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-lg font-bold py-4 rounded-xl shadow-xl shadow-emerald-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
-                    {submitting ? 'Enviando...' : (
+                    {submitting ? (
+                        'Enviando...'
+                    ) : (
                         <>
-                            <Check className="w-5 h-5" />
-                            Finalizar Devolução
+                            <Check className="w-6 h-6" />
+                            Confirmar Devolução
                         </>
                     )}
                 </button>

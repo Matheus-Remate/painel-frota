@@ -1,10 +1,13 @@
 import { getVehicleDetails } from "@/lib/services/mobile";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ArrowLeft, Car } from "lucide-react";
+import { ArrowRight, ArrowLeft, Car, CheckCircle } from "lucide-react";
 
-export default async function VehicleMobilePage({ params }: { params: { id: string } }) {
-    const vehicle = await getVehicleDetails(params.id);
+export default async function VehicleMobilePage(props: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+    const params = await props.params;
+    const searchParams = await props.searchParams;
+    const { id } = params;
+    const vehicle = await getVehicleDetails(id);
 
     if (!vehicle) {
         notFound();
@@ -28,9 +31,21 @@ export default async function VehicleMobilePage({ params }: { params: { id: stri
                     </p>
                 </div>
 
+                {searchParams?.success === 'true' && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+                        <div className="bg-emerald-500/20 p-2 rounded-full">
+                            <CheckCircle className="w-6 h-6 text-emerald-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-emerald-400">Check-in Realizado!</h3>
+                            <p className="text-emerald-500/70 text-sm">Obrigado por registrar a devolução.</p>
+                        </div>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 gap-4 pt-8">
                     <Link
-                        href={`/mobile/vehicle/${params.id}/checkout`}
+                        href={`/mobile/vehicle/${id}/checkout`}
                         className="group relative overflow-hidden bg-emerald-600 hover:bg-emerald-500 rounded-2xl p-6 transition-all active:scale-95"
                     >
                         <div className="relative z-10 flex items-center justify-between">
@@ -44,7 +59,7 @@ export default async function VehicleMobilePage({ params }: { params: { id: stri
                     </Link>
 
                     <Link
-                        href={`/mobile/vehicle/${params.id}/return`}
+                        href={`/mobile/vehicle/${id}/return`}
                         className="group relative overflow-hidden bg-slate-800 hover:bg-slate-700 rounded-2xl p-6 transition-all active:scale-95 border border-slate-700"
                     >
                         <div className="relative z-10 flex items-center justify-between">

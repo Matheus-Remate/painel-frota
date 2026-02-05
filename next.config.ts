@@ -8,6 +8,20 @@ const nextConfig = {
             },
         ],
     },
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '50mb',
+        },
+    },
+    async redirects() {
+        return [
+            {
+                source: '/veiculo/:id',
+                destination: '/mobile/vehicle/:id',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 export default nextConfig;

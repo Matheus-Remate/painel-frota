@@ -1,107 +1,127 @@
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
-export async function createCheckin(formData: FormData) {
-    const supabase = await createClient();
-
+export async function createCheckin(formData: FormData, lastKnownOdometer?: number) {
+    const supabase = await createClient(); // Still needed for auth/storage session
+    const adminSupabase = createAdminClient(); // Needed for RLS bypass on writes
     const vehicleId = formData.get('vehicleId') as string;
-    const odometer = parseInt(formData.get('odometer') as string);
-    const notes = formData.get('notes') as string;
-    const fuelLevel = formData.get('fuelLevel') as string; // 'EMPTY', '1/4', '1/2', '3/4', 'FULL'
 
-    // Check statuses
-    // status_0 = Limpeza, status_1 = Lataria/Pneus, status_2 = Luzes painel
-    // Mapping to DB columns: cleanliness_status, tires_exterior_status, dash_lights_status
-    // DB Enum is likely 'OK', 'ALERT', 'DAMAGE' or similar. 
-    // In the form I used 'OK' and 'ISSUE'. Let's map 'ISSUE' to 'ALERT' or 'DAMAGE' based on earlier file readings or typical logic.
-    // Looking at dashboard.ts, status values were OK, ALERT, DAMAGE. I'll map ISSUE to ALERT for simplicity unless I check the enum.
+    try {
+        // ... (parsing logic remains the same)
+        const odometerStr = formData.get('odometer') as string;
+        const odometer = parseInt(odometerStr) || lastKnownOdometer || 0;
+        const notes = (formData.get('notes') as string) || '';
+        const fuelLevel = (formData.get('fuelLevel') as string) || 'Não informado';
+        const driverName = (formData.get('driverName') as string) || 'Condutor não identificado';
+        const checklistJson = formData.get('checklist') as string;
 
-    // Let's assume the form values 'OK' and 'ISSUE' map to database values.
-    // Actually, let's map ISSUE -> ALERT for now.
-
-    const cleanliness = formData.get('status_0') === 'OK' ? 'OK' : 'ALERT';
-    const tiresExterior = formData.get('status_1') === 'OK' ? 'OK' : 'ALERT';
-    const dashLights = formData.get('status_2') === 'OK' ? 'OK' : 'ALERT';
-
-    const hasIssues = cleanliness !== 'OK' || tiresExterior !== 'OK' || dashLights !== 'OK';
-
-    // Handle Photos Upload
-    const photoFiles = formData.getAll('photos').filter(item => item instanceof File) as File[];
-    const photoUrls: string[] = [];
-
-    if (photoFiles.length > 0) {
-        for (const file of photoFiles) {
-            if (file.size === 0) continue;
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${vehicleId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage
-                .from('checkin-photos')
-                .upload(fileName, file);
-
-            if (!uploadError) {
-                const { data: { publicUrl } } = supabase.storage
-                    .from('checkin-photos')
-                    .getPublicUrl(fileName);
-                photoUrls.push(publicUrl);
-            } else {
-                console.error('Error uploading photo:', uploadError);
+        let checklist: any = {};
+        if (checklistJson) {
+            try {
+                checklist = JSON.parse(checklistJson);
+            } catch (e) {
+                console.error('Error parsing checklist JSON:', e);
             }
         }
+
+        // Ensure driver name is stored
+        checklist.driver_name = driverName;
+
+        const cleanliness = formData.get('status_0') === 'OK' ? 'OK' : 'ALERT';
+        const tiresExterior = formData.get('status_1') === 'OK' ? 'OK' : 'ALERT';
+        const dashLights = formData.get('status_2') === 'OK' ? 'OK' : 'ALERT';
+
+        // Process Photos
+        const photoUrls: string[] = [];
+        const entries = Array.from(formData.entries());
+
+        for (const [key, value] of entries) {
+            if (value instanceof File && value.size > 0) {
+                const isItemPhoto = key.startsWith('photo_');
+                const fileExt = value.name.split('.').pop();
+                const fileName = `${vehicleId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                // Storage upload - keep using regular client (Bucket is public or session based)
+                const { error: uploadError } = await supabase.storage
+                    .from('checkin-photos')
+                    .upload(fileName, value);
+
+                if (!uploadError) {
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('checkin-photos')
+                        .getPublicUrl(fileName);
+
+                    photoUrls.push(publicUrl);
+
+                    if (isItemPhoto) {
+                        const itemId = key.replace('photo_', '');
+                        if (checklist[itemId]) {
+                            checklist[itemId].photoUrl = publicUrl;
+                        } else {
+                            checklist[itemId] = { status: 'REVIEW', photoUrl: publicUrl };
+                        }
+                    }
+                }
+            }
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        let driverId = null;
+
+        if (user) {
+            // Use admin to ensure we can read drivers if RLS is tight
+            const { data: driver } = await adminSupabase
+                .from('drivers')
+                .select('id')
+                .eq('user_id', user.id)
+                .maybeSingle();
+            driverId = driver?.id;
+        }
+
+        const checkinData = {
+            vehicle_id: vehicleId,
+            driver_id: driverId,
+            odometer,
+            cleanliness_status: cleanliness,
+            tires_exterior_status: tiresExterior,
+            dash_lights_status: dashLights,
+            repair_notes: notes,
+            fuel_level: fuelLevel,
+            photos: photoUrls,
+            checklist: checklist,
+            has_issues: photoUrls.length > 0 || notes.trim().length > 0 || (checklist && Object.values(checklist).some((v: any) => v.status !== 'OK')),
+            checked_in_at: new Date().toISOString(),
+        };
+
+        const { error: insertError } = await adminSupabase
+            .from('check_ins')
+            .insert(checkinData);
+
+        if (insertError) {
+            console.error('DB Insert Error:', insertError);
+            return { success: false, error: 'Erro ao salvar check-in.' };
+        }
+
+        // Update vehicle status using Admin to bypass RLS
+        await adminSupabase
+            .from('vehicles')
+            .update({
+                odometer: odometer,
+                status: 'IN_YARD'
+            })
+            .eq('id', vehicleId);
+
+        revalidatePath('/dashboard/checkins');
+        revalidatePath('/dashboard/vehicles');
+        revalidatePath(`/mobile/vehicle/${vehicleId}`);
+
+        return { success: true };
+
+    } catch (error: any) {
+        console.error('CRITICAL ERROR in createCheckin:', error);
+        return { success: false, error: 'Ocorreu um erro inesperado.' };
     }
-
-    // Get current user (driver/admin doing the checkin)
-    const { data: { user } } = await supabase.auth.getUser();
-
-    // Check if user is a driver or get the driver ID associated with the user
-    // For now, let's try to find a driver linked to this user or just insert user_id if the schema allows.
-    // The check_ins table likely has a driver_id.
-    const { data: driver } = await supabase
-        .from('drivers')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-    // If no driver found (maybe admin checkin?), we might need to handle this.
-    // For now, let's proceed. If driver is null, it might fail RLS or constraint if driver_id is required.
-    // The schema showed check_ins referencing drivers.
-
-    const checkinData = {
-        vehicle_id: vehicleId,
-        driver_id: driver?.id, // specific driver if mapped
-        odometer,
-        cleanliness_status: cleanliness,
-        tires_exterior_status: tiresExterior,
-        dash_lights_status: dashLights,
-        repair_notes: notes,
-        has_issues: hasIssues,
-        fuel_level: fuelLevel,
-        photos: photoUrls,
-        checked_in_at: new Date().toISOString(),
-    };
-
-    const { error } = await supabase
-        .from('check_ins')
-        .insert(checkinData);
-
-    if (error) {
-        console.error('Error creating checkin:', error);
-        // In a real app we'd return verification, but for server actions we might redirect with error query param
-        throw new Error('Failed to create checkin');
-    }
-
-    // Update vehicle mileage and status
-    await supabase
-        .from('vehicles')
-        .update({
-            odometer: odometer,
-            status: 'IN_YARD' // Check-in implies return to yard
-        })
-        .eq('id', vehicleId);
-
-    revalidatePath('/dashboard/checkins');
-    revalidatePath('/dashboard/vehicles');
-    redirect('/dashboard/checkins');
 }

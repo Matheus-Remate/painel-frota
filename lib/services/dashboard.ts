@@ -6,17 +6,18 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { cache } from 'react';
 
 export async function resolveCheckin(id: string, notes: string) {
+    const supabaseAdmin = createAdminClient();
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Get the profile ID for the current user
+    // Get the profile ID for the current user (if any)
     const { data: profile } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user?.id)
         .single();
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
         .from('check_ins')
         .update({
             resolved: true,
@@ -26,7 +27,10 @@ export async function resolveCheckin(id: string, notes: string) {
         })
         .eq('id', id);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+        console.error('Resolution error:', error);
+        return { success: false, error: error.message };
+    }
 
     revalidatePath('/dashboard/checkins');
     revalidatePath('/dashboard/vehicles');
@@ -162,6 +166,7 @@ export const getCheckins = cache(async () => {
       repair_notes,
       resolved,
       resolution_notes,
+      checklist,
       vehicle:vehicles(
         license_plate,
         model:models(

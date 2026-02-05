@@ -10,7 +10,7 @@ export default async function OccurrencesPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white">Ocorrências</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Lançamentos e Ocorrência</h1>
                     <p className="text-slate-400 mt-1">Gestão de multas, sinistros e eventos da frota</p>
                 </div>
 

@@ -36,7 +36,7 @@ export default async function SchedulePage() {
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white">Cronograma de Reservas</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-white">Reservas</h1>
                         <p className="text-slate-400 mt-1">Visualize e gerencie a utilização da frota no tempo</p>
                     </div>
                 </div>

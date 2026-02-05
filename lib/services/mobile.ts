@@ -1,9 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function getVehicleDetails(id: string) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data: vehicle, error } = await supabase
         .from('vehicles')
         .select(`
@@ -17,14 +18,14 @@ export async function getVehicleDetails(id: string) {
         .single();
 
     if (error) {
-        console.error('Error fetching vehicle:', error);
+        console.error('Error fetching vehicle:', JSON.stringify(error, null, 2));
         return null;
     }
     return vehicle;
 }
 
 export async function getUnresolvedOccurrences(vehicleId: string) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data: occurrences, error } = await supabase
         .from('occurrences')
         .select(`
@@ -43,16 +44,16 @@ export async function getUnresolvedOccurrences(vehicleId: string) {
 }
 
 export async function getLastCheckin(vehicleId: string) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data: checkin, error } = await supabase
         .from('check_ins')
         .select('*')
         .eq('vehicle_id', vehicleId)
         .order('checked_in_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+    if (error) {
         console.error('Error fetching last checkin:', error);
     }
 
@@ -60,13 +61,15 @@ export async function getLastCheckin(vehicleId: string) {
 }
 
 // Simple server action to log a checkout (Retirada)
-// Currently, we might just update the vehicle status or log an event.
-// For now, let's update vehicle status to 'IN_USE'
-export async function registerCheckout(vehicleId: string) {
-    const supabase = await createClient();
+export async function registerCheckout(formDataOrId: string | FormData) {
+    const supabase = createAdminClient();
 
-    // Check if vehicle is already in use? Not strictly enforced yet as per requirements, 
-    // but good to update status.
+    let vehicleId: string;
+    if (typeof formDataOrId === 'string') {
+        vehicleId = formDataOrId;
+    } else {
+        vehicleId = formDataOrId.get('id') as string || '';
+    }
 
     const { error } = await supabase
         .from('vehicles')
@@ -79,4 +82,33 @@ export async function registerCheckout(vehicleId: string) {
     }
 
     return { success: true };
+}
+
+export async function getVehicleHistory(vehicleId: string) {
+    const supabase = createAdminClient();
+
+    // Buscar últimos 5 check-ins (Reports) que tiveram alertas
+    const { data: history, error } = await supabase
+        .from('check_ins')
+        .select(`
+            id,
+            checked_in_at,
+            driver:drivers(name),
+            has_issues,
+            resolved,
+            resolved_at,
+            resolution_notes,
+            checklist
+        `)
+        .eq('vehicle_id', vehicleId)
+        .eq('has_issues', true)
+        .order('checked_in_at', { ascending: false })
+        .limit(5);
+
+    if (error) {
+        console.error('Error fetching vehicle history:', error);
+        return [];
+    }
+
+    return history;
 }

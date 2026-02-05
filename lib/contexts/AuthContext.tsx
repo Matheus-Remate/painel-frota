@@ -83,13 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (mounted && session?.user) {
                     setUser(session.user);
-                    // Critical: await profile so we have it before clearing loading
                     await fetchProfile(session.user.id);
                 }
-            } catch (err) {
-                console.error("Auth init error:", err);
+            } catch (err: any) {
+                // Ignore AbortError in logs as it's common during HMR/Strict Mode
+                if (err?.name !== 'AbortError') {
+                    console.error("Auth init error:", err);
+                }
             } finally {
-                // Guaranteed unblock
                 if (mounted) setIsLoading(false);
             }
         };
@@ -101,14 +102,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 try {
                     if (session?.user) {
                         setUser(session.user);
-                        // Always fetch profile on state change (login/session refresh)
                         await fetchProfile(session.user.id);
                     } else {
                         setUser(null);
                         setProfile(null);
                     }
-                } catch (err) {
-                    console.error("Auth change error:", err);
+                } catch (err: any) {
+                    if (err?.name !== 'AbortError') {
+                        console.error("Auth change error:", err);
+                    }
                 } finally {
                     if (mounted) setIsLoading(false);
                 }
@@ -117,13 +119,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         initAuth();
 
-        // Safety timeout
+        // Safety timeout (increased to 8s for slower environments)
         const timeout = setTimeout(() => {
             if (mounted && isLoading) {
-                console.warn("Auth check timed out. Forcing UI load.");
+                console.warn("Auth check taking longer than expected. Continuing...");
                 setIsLoading(false);
             }
-        }, 5000);
+        }, 8000);
 
         return () => {
             mounted = false;

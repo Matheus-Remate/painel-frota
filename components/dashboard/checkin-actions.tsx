@@ -24,15 +24,15 @@ export default function CheckinActions({ checkinId }: { checkinId: string }) {
         <>
             <button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-brand/10 hover:bg-brand/20 text-brand-400 border border-brand/20 rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg transition-colors text-sm font-medium"
             >
                 <Check className="w-4 h-4" />
                 Resolver
             </button>
 
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md space-y-4">
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl p-8 w-full max-w-4xl space-y-6 relative animate-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center">
                             <h3 className="text-xl font-bold text-white">Resolver Alerta</h3>
                             <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
@@ -46,7 +46,8 @@ export default function CheckinActions({ checkinId }: { checkinId: string }) {
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="O que foi feito para resolver o problema?"
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-brand min-h-[100px]"
+                                placeholder="O que foi feito para resolver o problema?"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 focus:ring-brand focus:border-transparent min-h-[200px] text-lg resize-y"
                             />
                         </div>
 

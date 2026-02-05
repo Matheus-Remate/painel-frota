@@ -123,14 +123,19 @@ export default function DashboardHeader({ user }: HeaderProps) {
                         <Link href="/dashboard" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Dashboard</Link>
                         {['admin', 'gestor'].includes(user.profile?.role || 'solicitante') && (
                             <>
-                                <Link href="/dashboard/vehicles" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Veículos</Link>
-                                <Link href="/dashboard/drivers" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Condutores</Link>
-                                <Link href="/dashboard/schedule" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Cronograma</Link>
-                                <Link href="/dashboard/checkins" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Check-ins</Link>
+                                <Link href="/dashboard/schedule" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Reservas</Link>
+                                <Link href="/dashboard/checkins" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Revisão e Alertas</Link>
+                                <Link href="/dashboard/occurrences" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Lançamentos e Ocorrência</Link>
                                 <Link href="/dashboard/approvals" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Aprovações</Link>
                             </>
                         )}
                         <Link href="/dashboard/requests" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Minhas Solicitações</Link>
+                        {['admin', 'gestor'].includes(user.profile?.role || 'solicitante') && (
+                            <>
+                                <Link href="/dashboard/vehicles" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Veículos</Link>
+                                <Link href="/dashboard/drivers" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Condutores</Link>
+                            </>
+                        )}
                         <Link href="/dashboard/profile" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Meu Perfil</Link>
                     </nav>
                 </div>

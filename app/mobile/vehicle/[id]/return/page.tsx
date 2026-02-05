@@ -4,18 +4,19 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default async function ReturnPage({ params }: { params: { id: string } }) {
-    const vehicle = await getVehicleDetails(params.id);
+export default async function ReturnPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const vehicle = await getVehicleDetails(id);
     if (!vehicle) notFound();
 
-    const lastCheckin = await getLastCheckin(params.id);
+    const lastCheckin = await getLastCheckin(id);
     const lastOdometer = vehicle.odometer || (lastCheckin?.odometer || 0);
 
     return (
         <div className="min-h-screen bg-slate-950 text-white p-6 pb-24">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
-                <Link href={`/mobile/vehicle/${params.id}`} className="p-2 -ml-2 text-slate-400 hover:text-white">
+                <Link href={`/mobile/vehicle/${id}`} className="p-2 -ml-2 text-slate-400 hover:text-white">
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
                 <div>
@@ -24,7 +25,7 @@ export default async function ReturnPage({ params }: { params: { id: string } })
                 </div>
             </div>
 
-            <ReturnForm vehicleId={params.id} lastOdometer={lastOdometer} />
+            <ReturnForm vehicleId={id} lastOdometer={lastOdometer} />
         </div>
     );
 }

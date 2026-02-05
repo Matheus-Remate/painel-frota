@@ -11,7 +11,7 @@ export async function generateVehicleQRCode(
     licensePlate: string
 ): Promise<{ dataUrl: string; jsonData: string }> {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const checkInUrl = `${baseUrl}/mobile/checkin/${vehicleId}`;
+    const checkInUrl = `${baseUrl}/veiculo/${vehicleId}`;
 
     const qrData: VehicleQRData = {
         vehicleId,
