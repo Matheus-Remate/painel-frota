@@ -2,29 +2,25 @@
 
 import { useState } from 'react';
 import { Search, Car, ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react';
-import Image from 'next/image';
-import { createCheckin } from '@/lib/services/checkins'; // We might need to create this action
-
-interface Vehicle {
-    id: string;
-    license_plate: string;
-    color: string;
-    status: string;
-    model?: {
-        name: string;
-        brand: {
-            name: string;
-        }
-    };
-    brand?: string; // fallback
-    model_name?: string; // fallback
-}
+import { useRouter } from 'next/navigation';
+import { createCheckin } from '@/lib/services/checkins';
 
 export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
+    const router = useRouter();
     const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
     const [search, setSearch] = useState('');
 
     const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+
+    async function clientAction(formData: FormData) {
+        const result = await createCheckin(formData);
+        if (result.success) {
+            router.push('/dashboard/checkins?success=true');
+            router.refresh();
+        } else {
+            alert(result.error || 'Erro ao criar check-in');
+        }
+    }
 
     const filteredVehicles = vehicles.filter(v =>
         v.license_plate.toLowerCase().includes(search.toLowerCase()) ||
@@ -36,7 +32,6 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
             <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50">
                 <h2 className="text-xl font-semibold text-white mb-4">Selecione o Veículo</h2>
 
-                {/* Vehicle Selection Dropdown / Search */}
                 <div className="space-y-4">
                     {!selectedVehicle ? (
                         <div className="space-y-2">
@@ -79,7 +74,6 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                             </div>
                         </div>
                     ) : (
-                        // Selected Vehicle Display
                         <div className="animate-in fade-in slide-in-from-top-4">
                             <div className="bg-brand/10 border border-brand/20 rounded-xl p-4 flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-4">
@@ -105,10 +99,7 @@ export default function NewCheckinForm({ vehicles }: { vehicles: any[] }) {
                                 </button>
                             </div>
 
-                            {/* Here we would show the rest of the form (odometer, checklist, etc) */}
-                            {/* For now, just a placeholder or submit button as requested "somente o dropdown" */}
-
-                            <form action={createCheckin} className="space-y-6 mt-6 border-t border-slate-700 pt-6">
+                            <form action={clientAction} className="space-y-6 mt-6 border-t border-slate-700 pt-6">
                                 <input type="hidden" name="vehicleId" value={selectedVehicle.id} />
 
                                 <div className="space-y-4">
