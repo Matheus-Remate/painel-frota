@@ -46,7 +46,6 @@ export default function CheckinActions({ checkinId }: { checkinId: string }) {
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="O que foi feito para resolver o problema?"
-                                placeholder="O que foi feito para resolver o problema?"
                                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 focus:ring-brand focus:border-transparent min-h-[200px] text-lg resize-y"
                             />
                         </div>
