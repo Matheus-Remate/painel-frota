@@ -3,8 +3,10 @@ import { Plus, Search, User, Calendar, ArrowLeft } from "lucide-react";
 import { getDrivers } from "@/lib/services/dashboard";
 import { Suspense } from "react";
 
-async function DriverList() {
+async function DriverList({ query }: { query: string }) {
     const drivers = await getDrivers();
+    const normalized = query.trim().toLocaleLowerCase('pt-BR');
+    const filteredDrivers = drivers.filter((driver) => `${driver.name} ${driver.cpf} ${driver.cnh_category}`.toLocaleLowerCase('pt-BR').includes(normalized));
 
     return (
         <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden">
@@ -20,14 +22,14 @@ async function DriverList() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700/50">
-                        {drivers.length === 0 ? (
+                        {filteredDrivers.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="p-8 text-center text-slate-500">
                                     Nenhum condutor encontrado.
                                 </td>
                             </tr>
                         ) : (
-                            drivers.map((driver) => (
+                            filteredDrivers.map((driver) => (
                                 <tr key={driver.id} className="hover:bg-slate-700/30 transition-colors">
                                     <td className="p-4">
                                         <div className="flex items-center gap-3">
@@ -85,7 +87,8 @@ function DriverSkeleton() {
     );
 }
 
-export default function DriversPage() {
+export default async function DriversPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+    const { q = '' } = await searchParams;
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -110,20 +113,22 @@ export default function DriversPage() {
                 </Link>
             </div>
 
-            {/* Filters Bar (Static) */}
-            <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl flex flex-col sm:flex-row gap-4">
+            <form className="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                         type="text"
+                        name="q"
+                        defaultValue={q}
                         placeholder="Buscar por nome, CPF ou CNH..."
                         className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
                     />
                 </div>
-            </div>
+                <button className="rounded-lg bg-brand px-5 py-2 font-medium text-white">Buscar</button>
+            </form>
 
             <Suspense fallback={<DriverSkeleton />}>
-                <DriverList />
+                <DriverList query={q} />
             </Suspense>
         </div>
     );

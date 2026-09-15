@@ -1,19 +1,24 @@
-import { FlatCompat } from '@eslint/eslintrc';
-import { fileURLToPath } from 'node:url';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTypeScript from 'eslint-config-next/typescript';
 
-const baseDirectory = fileURLToPath(new URL('.', import.meta.url));
-const compat = new FlatCompat({ baseDirectory });
-
-const eslintConfig = [
+export default defineConfig([
+    ...nextVitals,
+    ...nextTypeScript,
     {
-        ignores: [
-            '.next/**',
-            'node_modules/**',
-            'corona-react-free-admin-template-main/**',
-            'next-env.d.ts',
-        ],
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'warn',
+            '@typescript-eslint/no-unused-vars': 'warn',
+            'react-hooks/immutability': 'warn',
+            'react-hooks/set-state-in-effect': 'warn',
+            'react/no-unescaped-entities': 'warn',
+            'prefer-const': 'warn',
+        },
     },
-    ...compat.extends('next/core-web-vitals', 'next/typescript'),
-];
-
-export default eslintConfig;
+    globalIgnores([
+        '.next/**',
+        'node_modules/**',
+        'corona-react-free-admin-template-main/**',
+        'next-env.d.ts',
+    ]),
+]);

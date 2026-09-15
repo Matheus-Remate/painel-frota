@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { cache } from 'react';
 
@@ -254,81 +253,10 @@ export async function approveRequest(requestId: string, vehicleId: string) {
         return { success: false, error: 'Sem permissão para aprovar solicitações.' };
     }
 
-    // Get the request details
-    const { data: request } = await supabase
-        .from('vehicle_requests')
-        .select(`
-            id,
-            requester_id,
-            model_id,
-            model_name,
-            event_name,
-            pickup_datetime,
-            return_datetime,
-            driver_id,
-            driver_name,
-            status,
-            vehicle_id,
-            approved_by,
-            denial_reason,
-            created_at
-        `)
-        .eq('id', requestId)
-        .single();
-
-    if (!request) {
-        return { success: false, error: 'Solicitação não encontrada.' };
-    }
-
-    // Check vehicle availability
-    const { data: conflicts } = await supabase
-        .from('reservations')
-        .select('id')
-        .eq('vehicle_id', vehicleId)
-        .neq('status', 'CANCELLED')
-        .or(`and(start_date.lte.${request.return_datetime},end_date.gte.${request.pickup_datetime})`);
-
-    if (conflicts && conflicts.length > 0) {
-        return { success: false, error: 'Veículo não disponível nas datas solicitadas.' };
-    }
-
-    // Update request status
-    const { error: updateError } = await supabase
-        .from('vehicle_requests')
-        .update({
-            status: 'APPROVED',
-            vehicle_id: vehicleId,
-            approved_by: profile.id,
-        })
-        .eq('id', requestId);
-
-    if (updateError) {
-        return { success: false, error: updateError.message };
-    }
-
-    // Create reservation in the schedule
-    const adminClient = createAdminClient();
-
-    const { error: reservationError } = await adminClient
-        .from('reservations')
-        .insert({
-            vehicle_id: vehicleId,
-            driver_id: request.driver_id, // Link to the driver
-            start_date: request.pickup_datetime,
-            end_date: request.return_datetime,
-            purpose: `${request.event_name} - Condutor: ${request.driver_name}`,
-            status: 'ACTIVE',
-        });
-
-    if (reservationError) {
-        // Rollback the request update
-        await supabase
-            .from('vehicle_requests')
-            .update({ status: 'PENDING', vehicle_id: null, approved_by: null })
-            .eq('id', requestId);
-
-        return { success: false, error: 'Erro ao criar reserva: ' + reservationError.message };
-    }
+    const { error: approvalError } = await supabase.rpc('approve_vehicle_request_atomic', {
+        p_request_id: requestId, p_vehicle_id: vehicleId,
+    });
+    if (approvalError) return { success: false, error: approvalError.message.includes('reserved') ? 'Veículo não disponível nas datas solicitadas.' : approvalError.message };
 
     revalidatePath('/dashboard/requests');
     revalidatePath('/dashboard/approvals');

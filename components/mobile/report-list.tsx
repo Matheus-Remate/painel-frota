@@ -6,12 +6,14 @@ import { ChevronDown, ChevronUp, AlertCircle, CheckCircle2, MessageSquare } from
 interface Report {
     id: string;
     checked_in_at: string;
-    driver?: any;
+    driver_name?: string | null;
     has_issues: boolean;
     resolved: boolean;
     resolved_at?: string;
     resolution_notes?: string;
-    checklist?: any;
+    fuel_level?: string | null;
+    odometer?: number;
+    checklist?: Record<string, { status?: string; notes?: string; photoUrl?: string } | string>;
 }
 
 export default function ReportList({ history }: { history: Report[] }) {
@@ -24,7 +26,7 @@ export default function ReportList({ history }: { history: Report[] }) {
     if (history.length === 0) {
         return (
             <div className="text-slate-500 text-sm italic text-center py-6 bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
-                Nenhum alerta registrado recentemente.
+                Nenhuma devolução registrada recentemente.
             </div>
         );
     }
@@ -39,10 +41,10 @@ export default function ReportList({ history }: { history: Report[] }) {
                 // Get issues from checklist
                 const issues = record.checklist ?
                     Object.entries(record.checklist)
-                        .filter(([_, value]: any) => value.status === 'REVIEW')
-                        .map(([key, value]: any) => ({
+                        .filter(([, value]) => typeof value === 'object' && value?.status === 'REVIEW')
+                        .map(([key, value]) => ({
                             item: key.charAt(0).toUpperCase() + key.slice(1),
-                            notes: value.notes
+                            notes: typeof value === 'object' ? value.notes : ''
                         })) : [];
 
                 return (
@@ -58,10 +60,10 @@ export default function ReportList({ history }: { history: Report[] }) {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {record.resolved ? (
+                                    {!record.has_issues || record.resolved ? (
                                         <div className="flex items-center gap-1 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
                                             <CheckCircle2 className="w-3 h-3" />
-                                            Resolvido
+                                            {record.has_issues ? 'Resolvido' : 'Sem alerta'}
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-1 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
@@ -77,6 +79,7 @@ export default function ReportList({ history }: { history: Report[] }) {
                         {isExpanded && (
                             <div className="px-4 pb-4 pt-0 border-t border-slate-800/50 animate-in slide-in-from-top-1 duration-200">
                                 <div className="mt-4 space-y-4">
+                                    <p className="text-sm text-slate-300">Condutor: <strong>{record.driver_name || 'Não identificado'}</strong> · {record.odometer ?? 0} km · combustível {record.fuel_level || 'não informado'}.</p>
                                     <div>
                                         <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                                             <MessageSquare className="w-3 h-3 text-brand" />

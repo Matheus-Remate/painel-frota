@@ -8,18 +8,13 @@ export interface VehicleQRData {
 
 export async function generateVehicleQRCode(
     vehicleId: string,
-    licensePlate: string
+    licensePlate: string,
+    accessToken: string
 ): Promise<{ dataUrl: string; jsonData: string }> {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const checkInUrl = `${baseUrl}/veiculo/${vehicleId}`;
+    const checkInUrl = `${baseUrl}/mobile/vehicle/${vehicleId}?token=${encodeURIComponent(accessToken)}`;
 
-    const qrData: VehicleQRData = {
-        vehicleId,
-        licensePlate,
-        checkInUrl
-    };
-
-    const jsonData = JSON.stringify(qrData);
+    const jsonData = checkInUrl;
 
     const dataUrl = await QRCode.toDataURL(jsonData, {
         width: 300,

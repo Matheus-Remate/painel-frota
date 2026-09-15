@@ -1,12 +1,19 @@
 import Link from "next/link";
-import { Plus, Car, Search, Filter, ArrowLeft } from "lucide-react";
+import { Plus, Car, Search, ArrowLeft } from "lucide-react";
 import { getVehicles } from "@/lib/services/dashboard";
 import { Suspense } from "react";
 
-async function VehicleList() {
+async function VehicleList({ query, status }: { query: string; status: string }) {
     const vehicles = await getVehicles();
+    const normalized = query.trim().toLocaleLowerCase('pt-BR');
+    const filteredVehicles = vehicles.filter((vehicle) => {
+        const model = Array.isArray(vehicle.model) ? vehicle.model[0] : vehicle.model;
+        const brand = Array.isArray(model?.brand) ? model.brand[0] : model?.brand;
+        const haystack = `${vehicle.license_plate} ${vehicle.chassis} ${model?.name ?? ''} ${brand?.name ?? ''}`.toLocaleLowerCase('pt-BR');
+        return (!normalized || haystack.includes(normalized)) && (!status || vehicle.status === status);
+    });
 
-    if (vehicles.length === 0) {
+    if (filteredVehicles.length === 0) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <div className="col-span-full py-12 text-center bg-slate-800/30 rounded-xl border border-slate-700/50">
@@ -29,7 +36,7 @@ async function VehicleList() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {vehicles.map((vehicle: any) => (
+            {filteredVehicles.map((vehicle) => (
                 <div
                     key={vehicle.id}
                     className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-brand/30 transition-all hover:shadow-lg hover:shadow-brand/10"
@@ -52,10 +59,8 @@ async function VehicleList() {
 
                     <h3 className="text-lg font-bold text-white mb-1">
                         {(() => {
-                            const modelObj = typeof vehicle.model === 'object' ? vehicle.model as any : null;
-                            const modelName = typeof vehicle.model === 'string'
-                                ? vehicle.model
-                                : (Array.isArray(vehicle.model) ? vehicle.model[0]?.name : vehicle.model?.name) || 'Modelo Desconhecido';
+                            const modelObj = (Array.isArray(vehicle.model) ? vehicle.model[0] : vehicle.model) as { name?: string; brand?: { name?: string } | { name?: string }[] } | null;
+                            const modelName = modelObj?.name || 'Modelo Desconhecido';
 
                             const brandData = modelObj?.brand;
                             const brandName = Array.isArray(brandData) ? brandData[0]?.name : brandData?.name || (vehicle as any).brand || '';
@@ -126,7 +131,8 @@ function VehicleSkeleton() {
     );
 }
 
-export default function VehiclesPage() {
+export default async function VehiclesPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+    const { q = '', status = '' } = await searchParams;
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -151,24 +157,23 @@ export default function VehiclesPage() {
                 </Link>
             </div>
 
-            {/* Filters Bar (Static) */}
-            <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl flex flex-col sm:flex-row gap-4">
+            <form className="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                         type="text"
+                        name="q"
+                        defaultValue={q}
                         placeholder="Buscar por placa, modelo ou chassi..."
                         className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
                     />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">
-                    <Filter className="w-4 h-4" />
-                    Filtros
-                </button>
-            </div>
+                <select name="status" defaultValue={status} className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-slate-300"><option value="">Todos os status</option><option value="IN_YARD">No pátio</option><option value="ON_ROUTE">Em uso</option><option value="AWAITING_REPAIR">Aguardando reparo</option><option value="IN_MAINTENANCE">Em manutenção</option></select>
+                <button className="rounded-lg bg-brand px-5 py-2 font-medium text-white">Buscar</button>
+            </form>
 
             <Suspense fallback={<VehicleSkeleton />}>
-                <VehicleList />
+                <VehicleList query={q} status={status} />
             </Suspense>
         </div>
     );

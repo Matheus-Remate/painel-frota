@@ -34,6 +34,7 @@ export async function signIn(formData: FormData) {
 
     const email = String(formData.get('email') ?? '').trim().toLowerCase();
     const password = String(formData.get('password') ?? '');
+    const requestedRedirect = String(formData.get('redirect') ?? '');
 
     if (!email || !password) {
         return { success: false, error: 'E-mail ou senha inválidos.' };
@@ -58,9 +59,10 @@ export async function signIn(formData: FormData) {
         .single();
 
     // Redirect based on role
-    const redirectPath = profile?.role === 'solicitante'
-        ? '/dashboard/requests'
-        : '/dashboard';
+    const fallbackPath = profile?.role === 'solicitante' ? '/dashboard/requests' : '/dashboard';
+    const redirectPath = requestedRedirect.startsWith('/dashboard') && !requestedRedirect.startsWith('//')
+        ? requestedRedirect
+        : fallbackPath;
 
     return { success: true, redirect: redirectPath };
 }
@@ -79,7 +81,7 @@ export async function signOut() {
  */
 export async function requestPasswordReset(formData: FormData) {
     const supabase = await createClient();
-    const email = formData.get('email') as string;
+    const email = String(formData.get('email') ?? '').trim().toLowerCase();
 
     // Check if user exists
     const adminClient = createAdminClient();
@@ -109,8 +111,6 @@ export async function requestPasswordReset(formData: FormData) {
 
     if (error) {
         console.error('Password reset error:', error);
-        // Log for development since SMTP may not be configured
-        console.log(`[DEV] Password reset requested for: ${email}`);
     }
 
     return {
@@ -184,14 +184,11 @@ export async function updateProfile(formData: FormData) {
 
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
-    const email = formData.get('email') as string;
-
     const { error } = await supabase
         .from('profiles')
         .update({
             first_name: firstName,
             last_name: lastName,
-            email: email,
         })
         .eq('user_id', user.id);
 

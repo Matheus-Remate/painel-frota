@@ -5,17 +5,22 @@ import Link from "next/link";
 import { signOut } from "@/lib/services/auth";
 import { Menu, X, LogOut, User, ChevronDown, Bell } from "lucide-react";
 import type { AuthUser } from "@/lib/services/auth";
+import type { FleetNotification } from '@/lib/services/notifications';
+import { markNotificationsRead } from '@/lib/services/notifications';
 
 interface HeaderProps {
     user: AuthUser;
+    initialNotifications: FleetNotification[];
 }
 
-export default function DashboardHeader({ user }: HeaderProps) {
+export default function DashboardHeader({ user, initialNotifications }: HeaderProps) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState(initialNotifications);
 
     const initials = user.profile
-        ? `${user.profile.first_name[0]}${user.profile.last_name[0]}`.toUpperCase()
+        ? `${user.profile.first_name?.[0] ?? ''}${user.profile.last_name?.[0] ?? ''}`.toUpperCase() || user.email[0].toUpperCase()
         : user.email[0].toUpperCase();
 
     const displayName = user.profile
@@ -27,6 +32,17 @@ export default function DashboardHeader({ user }: HeaderProps) {
         gestor: 'Gestor',
         solicitante: 'Solicitante',
     };
+    const unread = notifications.filter((item) => !item.read_at).length;
+
+    async function openNotifications() {
+        const next = !showNotifications;
+        setShowNotifications(next);
+        if (next && unread) {
+            const readAt = new Date().toISOString();
+            setNotifications((items) => items.map((item) => ({ ...item, read_at: item.read_at || readAt })));
+            await markNotificationsRead();
+        }
+    }
 
     return (
 
@@ -35,6 +51,7 @@ export default function DashboardHeader({ user }: HeaderProps) {
             <button
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
                 className="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                aria-label="Abrir menu"
             >
                 {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -46,11 +63,16 @@ export default function DashboardHeader({ user }: HeaderProps) {
             <div className="flex items-center gap-4">
 
                 {/* Notifications */}
-                <button className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative">
+                <div className="relative">
+                <button onClick={openNotifications} aria-label={`Notificações${unread ? `, ${unread} não lidas` : ''}`} className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative">
                     <Bell className="w-5 h-5" />
-                    {/* Notification Badge */}
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-brand-600 rounded-full"></span>
+                    {unread > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-brand-600 px-1 text-center text-[10px] font-bold text-white">{unread > 9 ? '9+' : unread}</span>}
                 </button>
+                {showNotifications && <div className="absolute right-0 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800">
+                    <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700"><p className="font-semibold text-slate-900 dark:text-white">Notificações da frota</p><p className="text-xs text-slate-500">Retiradas, devoluções e alertas</p></div>
+                    <div className="max-h-80 overflow-y-auto">{notifications.length ? notifications.map((item) => <Link key={item.id} href={item.href} onClick={() => setShowNotifications(false)} className="block border-b border-slate-100 px-4 py-3 hover:bg-slate-50 dark:border-slate-700/60 dark:hover:bg-slate-700/50"><p className="text-sm font-medium text-slate-900 dark:text-white">{item.title}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.message}</p><time className="mt-1 block text-[10px] text-slate-400">{new Date(item.created_at).toLocaleString('pt-BR')}</time></Link>) : <p className="p-6 text-center text-sm text-slate-500">Nenhuma notificação.</p>}</div>
+                </div>}
+                </div>
 
                 {/* User Menu */}
                 <div className="relative">
@@ -134,6 +156,7 @@ export default function DashboardHeader({ user }: HeaderProps) {
                             <>
                                 <Link href="/dashboard/vehicles" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Veículos</Link>
                                 <Link href="/dashboard/drivers" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Condutores</Link>
+                                <Link href="/dashboard/settings" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Configurações</Link>
                             </>
                         )}
                         <Link href="/dashboard/profile" onClick={() => setShowMobileMenu(false)} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg">Meu Perfil</Link>

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, Car, QrCode, Calendar, Gauge, AlertTriangle, CheckCircle, FileText, Printer } from "lucide-react";
+import { ArrowLeft, Calendar, FileText } from "lucide-react";
 import { getVehicleById } from "@/lib/services/dashboard";
 import { generateVehicleQRCode } from "@/lib/utils/qrcode";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import VehicleActions from "@/components/vehicles/VehicleActions";
+import PrintQrButton from "@/components/vehicles/print-qr-button";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -21,7 +22,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
     }
 
     // Gera o QR Code para este veículo
-    const { dataUrl: qrCodeUrl } = await generateVehicleQRCode(vehicle.id, vehicle.license_plate);
+    const { dataUrl: qrCodeUrl } = await generateVehicleQRCode(vehicle.id, vehicle.license_plate, vehicle.qr_access_token);
 
     return (
         <div className="space-y-8">
@@ -59,13 +60,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                 </div>
 
                 {/* Botão de Impressão (Simulado com ação de browser print não implementada aqui, mas visual) */}
-                <button
-                    className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors border border-slate-700"
-                    title="Imprimir Ficha"
-                >
-                    <Printer className="w-4 h-4" />
-                    <span>Imprimir QR Code</span>
-                </button>
+                <PrintQrButton />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -141,7 +136,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                                                 </span>
                                             </div>
                                             <div className="text-sm text-slate-400 mb-2">
-                                                Condutor: <span className="text-slate-300">{checkin.driver?.name || 'Não identificado'}</span>
+                                                Condutor: <span className="text-slate-300">{checkin.driver_name || checkin.driver?.name || 'Não identificado'}</span>
                                             </div>
                                             <div className="flex gap-2 text-xs">
                                                 <StatusBadge label="Lataria" status={checkin.tires_exterior_status} />
@@ -172,6 +167,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                         <div className="bg-slate-100 px-4 py-2 rounded text-slate-600 font-mono font-bold text-lg">
                             {vehicle.license_plate}
                         </div>
+                        <p className="mt-3 text-xs text-slate-500">O código contém uma credencial operacional. Reimprima-o se houver exposição indevida.</p>
                     </div>
 
                     <VehicleActions vehicleId={vehicle.id} licensePlate={vehicle.license_plate} />

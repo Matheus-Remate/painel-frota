@@ -4,17 +4,18 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { cache } from 'react';
+import { requireManager } from '@/lib/security/authorization';
+import { signChecklistPhotos, signCheckinPhotos } from '@/lib/services/photos';
 
 export async function resolveCheckin(id: string, notes: string) {
+    const authorized = await requireManager();
     const supabaseAdmin = createAdminClient();
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
     // Get the profile ID for the current user (if any)
     const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', authorized.id)
         .single();
 
     const { error } = await supabaseAdmin
@@ -30,6 +31,13 @@ export async function resolveCheckin(id: string, notes: string) {
     if (error) {
         console.error('Resolution error:', error);
         return { success: false, error: error.message };
+    }
+
+    const { data: checkin } = await supabaseAdmin.from('check_ins').select('vehicle_id').eq('id', id).single();
+    if (checkin) {
+        const { count } = await supabaseAdmin.from('check_ins').select('id', { count: 'exact', head: true })
+            .eq('vehicle_id', checkin.vehicle_id).eq('has_issues', true).eq('resolved', false);
+        if (!count) await supabaseAdmin.from('vehicles').update({ status: 'IN_YARD' }).eq('id', checkin.vehicle_id).eq('status', 'AWAITING_REPAIR');
     }
 
     revalidatePath('/dashboard/checkins');
@@ -50,6 +58,7 @@ export const getVehicles = cache(async () => {
             color,
             status,
             usage_category,
+            odometer,
             model_id,
             model:models(
                 id,
@@ -77,6 +86,10 @@ export const getVehicleById = cache(async (id: string) => {
         color,
         status,
         usage_category,
+        odometer,
+        renavam,
+        capacity,
+        qr_access_token,
         model_id,
         model:models(
             id,
@@ -91,6 +104,10 @@ export const getVehicleById = cache(async (id: string) => {
           cleanliness_status,
           dash_lights_status,
           tires_exterior_status,
+          driver_name,
+          fuel_level,
+          return_notes,
+          checklist,
           driver:drivers(name)
         )
       `)
@@ -167,6 +184,9 @@ export const getCheckins = cache(async () => {
       resolved,
       resolution_notes,
       checklist,
+      driver_name,
+      return_notes,
+      photo_paths,
       vehicle:vehicles(
         license_plate,
         model:models(
@@ -179,5 +199,9 @@ export const getCheckins = cache(async () => {
         .order('checked_in_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return Promise.all((data || []).map(async (item) => ({
+        ...item,
+        checklist: await signChecklistPhotos(item.checklist),
+        photos: await signCheckinPhotos(item.photo_paths, item.photos),
+    })));
 });

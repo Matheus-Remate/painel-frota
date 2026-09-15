@@ -16,6 +16,8 @@ export default function LoginPage() {
         setError(null);
 
         try {
+            const redirect = new URLSearchParams(window.location.search).get('redirect');
+            if (redirect) formData.set('redirect', redirect);
             const result = await signIn(formData);
             if (result?.success && result.redirect) {
                 // A navegação completa garante que os cookies de sessão gravados
@@ -106,16 +108,7 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    {/* Remember & Forgot */}
-                    <div className="flex items-center justify-between px-1">
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                name="remember"
-                                className="w-4 h-4 rounded border-border bg-slate-50 dark:bg-slate-900 text-brand-900 focus:ring-brand-900/20"
-                            />
-                            <span className="text-sm text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">Lembrar-me</span>
-                        </label>
+                    <div className="flex justify-end px-1">
                         <Link
                             href="/forgot-password"
                             className="text-sm font-semibold text-brand-900 hover:text-brand-800 transition-colors"

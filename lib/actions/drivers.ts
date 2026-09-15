@@ -3,8 +3,10 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { requireManager } from '@/lib/security/authorization';
 
 export async function createDriver(formData: FormData) {
+    await requireManager();
     // Usa cliente Admin para ignorar RLS
     const supabase = createAdminClient();
 
@@ -30,6 +32,7 @@ export async function createDriver(formData: FormData) {
 }
 
 export async function updateDriver(id: string, formData: FormData) {
+    await requireManager();
     const supabase = createAdminClient();
 
     const rawData = {

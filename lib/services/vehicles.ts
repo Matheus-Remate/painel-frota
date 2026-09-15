@@ -2,9 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { requireManager } from '@/lib/security/authorization';
 import { redirect } from 'next/navigation';
 
 export async function createVehicle(formData: FormData) {
+    await requireManager();
     const supabase = await createClient();
 
     const licensePlate = formData.get('licensePlate') as string;
@@ -52,6 +54,7 @@ export async function createVehicle(formData: FormData) {
 }
 
 export async function updateVehicle(id: string, formData: FormData) {
+    await requireManager();
     const supabase = await createClient();
 
     const licensePlate = formData.get('licensePlate') as string;
@@ -83,6 +86,7 @@ export async function updateVehicle(id: string, formData: FormData) {
 }
 
 export async function deleteVehicle(id: string) {
+    await requireManager();
     const supabase = await createClient();
 
     // Soft delete the vehicle instead of hard delete

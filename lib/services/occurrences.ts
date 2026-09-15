@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { requireManager } from '@/lib/security/authorization';
 
 export async function getOccurrences() {
     const supabase = await createClient();
@@ -30,12 +31,12 @@ export async function getOccurrences() {
 }
 
 export async function createOccurrence(formData: FormData) {
+    await requireManager();
     const supabase = await createClient();
 
     const vehicleId = formData.get('vehicleId') as string;
     const driverId = formData.get('driverId') as string || null;
     const typeId = formData.get('typeId') as string;
-    const date = formData.get('date') as string; // ISO string or date
     const description = formData.get('description') as string;
     const cost = parseFloat(formData.get('cost') as string) || 0;
     const observation = formData.get('observation') as string;
@@ -44,7 +45,6 @@ export async function createOccurrence(formData: FormData) {
     const dateQuery = new Date(dateStr).toISOString();
 
     let finalDriverId = driverId;
-    let driverNameStr = '';
 
     // Auto-link logic: If no driver selected, try to find active reservation
     if (!finalDriverId) {
@@ -80,6 +80,7 @@ export async function createOccurrence(formData: FormData) {
 }
 
 export async function resolveOccurrence(id: string) {
+    await requireManager();
     const supabase = await createClient();
 
     const { error } = await supabase
@@ -94,6 +95,7 @@ export async function resolveOccurrence(id: string) {
 }
 
 export async function updateOccurrence(id: string, formData: FormData) {
+    await requireManager();
     const supabase = await createClient();
 
     const vehicleId = formData.get('vehicleId') as string;
@@ -125,6 +127,7 @@ export async function updateOccurrence(id: string, formData: FormData) {
 }
 
 export async function deleteOccurrence(id: string) {
+    await requireManager();
     const supabase = await createClient();
 
     const { error } = await supabase

@@ -15,8 +15,6 @@ import {
     AlertTriangle
 } from "lucide-react";
 import Image from "next/image";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 type UserRole = 'admin' | 'gestor' | 'solicitante';
 
@@ -86,26 +84,24 @@ const navItems: NavItem[] = [
         icon: <User className="w-5 h-5" />,
         roles: ['admin', 'gestor', 'solicitante'],
     },
+    {
+        href: '/dashboard/settings',
+        label: 'Configurações',
+        icon: <Settings className="w-5 h-5" />,
+        roles: ['admin', 'gestor'],
+    },
 ];
 
 import { useSidebar } from "@/lib/contexts/SidebarContext";
-import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function DashboardSidebar({ userRole }: SidebarProps) {
     const pathname = usePathname();
-    const { theme } = useTheme();
-    const [mounted, setMounted] = useState(false);
     const { isCollapsed, toggleSidebar } = useSidebar();
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
     const filteredItems = navItems.filter(item =>
-        item.roles.includes(userRole as any)
+        item.roles.includes(userRole)
     );
-
-    if (!mounted) return null;
 
     return (<aside
         className={`fixed inset-y-0 left-0 z-50 bg-bg-card border-r border-slate-200 dark:border-slate-700/50 hidden lg:flex flex-col transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'
@@ -117,7 +113,6 @@ export default function DashboardSidebar({ userRole }: SidebarProps) {
             <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden">
                 <div className={`relative flex items-center justify-center bg-white rounded-lg p-1.5 transition-all ${isCollapsed ? 'h-10 w-10' : 'h-10 w-10'
                     }`}>
-                    {mounted && (
                         <Image
                             src="/images/logo-light.png"
                             alt="PL"
@@ -126,7 +121,6 @@ export default function DashboardSidebar({ userRole }: SidebarProps) {
                             className="object-contain"
                             unoptimized
                         />
-                    )}
                 </div>
                 {!isCollapsed && (
                     <div className="flex flex-col">

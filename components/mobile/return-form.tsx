@@ -2,7 +2,7 @@
 
 import { createCheckin } from "@/lib/services/checkins";
 import { useState } from "react";
-import { Camera, Check, AlertTriangle, Gauge, Fuel, Send, User } from "lucide-react";
+import { Camera, Check, AlertCircle, Gauge, Fuel, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const CHECKLIST_ITEMS = [
@@ -21,12 +21,13 @@ interface ChecklistState {
     }
 }
 
-export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: string, lastOdometer: number }) {
+export default function ReturnForm({ vehicleId, token, lastOdometer }: { vehicleId: string; token: string; lastOdometer: number }) {
     const [submitting, setSubmitting] = useState(false);
     const [checklist, setChecklist] = useState<ChecklistState>(
         CHECKLIST_ITEMS.reduce((acc, item) => ({ ...acc, [item.id]: { status: 'OK' } }), {})
     );
     const router = useRouter();
+    const [error, setError] = useState<string | null>(null);
 
     const handleStatusChange = (id: string, status: 'OK' | 'REVIEW') => {
         setChecklist(prev => ({
@@ -44,6 +45,12 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
 
     const handlePhotoChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
+            if (e.target.files[0].size > 5 * 1024 * 1024) {
+                setError('Cada foto deve ter no máximo 5 MB.');
+                e.target.value = '';
+                return;
+            }
+            setError(null);
             setChecklist(prev => ({
                 ...prev,
                 [id]: { ...prev[id], photo: e.target.files![0] }
@@ -55,9 +62,10 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
 
     async function handleSubmit(formData: FormData) {
         setSubmitting(true);
+        setError(null);
         try {
             // Prepare dynamic checklist data
-            const checklistData: any = {};
+            const checklistData: Record<string, { status: 'OK' | 'REVIEW'; notes: string }> = {};
 
             // Append files and build JSON
             Object.entries(checklist).forEach(([key, value]) => {
@@ -80,21 +88,20 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
             formData.append('status_1', checklist['pneus']?.status === 'OK' ? 'OK' : 'ISSUE');
             formData.append('status_2', 'OK');
 
-            const result = await createCheckin(formData, lastOdometer);
+            const result = await createCheckin(formData);
 
             if (result.success) {
                 setIsSuccess(true);
                 // Redirect after a short delay
                 setTimeout(() => {
-                    router.push(`/mobile/vehicle/${vehicleId}?success=true`);
+                    router.push(`/mobile/vehicle/${vehicleId}?token=${encodeURIComponent(token)}&success=true`);
                 }, 2000);
             } else {
-                alert(result.error || 'Erro ao enviar. Tente novamente.');
+                setError(result.error || 'Erro ao enviar. Tente novamente.');
                 setSubmitting(false);
             }
-        } catch (e) {
-            console.error(e);
-            alert('Falha na comunicação com o servidor.');
+        } catch {
+            setError('Falha na comunicação com o servidor.');
             setSubmitting(false);
         }
     }
@@ -106,7 +113,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
                     <Check className="w-10 h-10 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold">Check-in Realizado!</h2>
-                <p className="text-slate-400">Obrigado. O veículo está liberado.</p>
+                <p className="text-slate-400">Os dados foram salvos e o gestor foi notificado.</p>
                 <p className="text-xs text-slate-500 pt-10">Redirecionando...</p>
             </div>
         );
@@ -115,6 +122,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
     return (
         <form action={handleSubmit} className="space-y-8 pb-10">
             <input type="hidden" name="vehicleId" value={vehicleId} />
+            <input type="hidden" name="token" value={token} />
 
             {/* 0. Identificação */}
             <div className="bg-slate-900 rounded-xl p-5 border border-slate-800 space-y-2">
@@ -169,6 +177,7 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
                                     name="fuelLevel"
                                     value={level.val}
                                     className="peer hidden"
+                                    required
                                 />
                                 <div className="text-center py-4 rounded-xl bg-slate-950 border-2 border-slate-800 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-400 text-sm font-bold text-slate-500 transition-all active:scale-95">
                                     {level.label}
@@ -178,6 +187,13 @@ export default function ReturnForm({ vehicleId, lastOdometer }: { vehicleId: str
                     </div>
                 </div>
             </div>
+
+            <div className="bg-slate-900 rounded-xl p-5 border border-slate-800 space-y-2">
+                <label htmlFor="return-notes" className="text-sm font-medium text-white">Observações gerais da devolução</label>
+                <textarea id="return-notes" name="notes" rows={3} placeholder="Ex.: local da chave, abastecimento ou informação para o próximo condutor" className="w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none focus:border-emerald-500" />
+            </div>
+
+            {error && <div role="alert" className="flex gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300"><AlertCircle className="h-5 w-5 shrink-0" />{error}</div>}
 
             {/* 2. Checklist Dinâmico */}
             <div className="space-y-4">

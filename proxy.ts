@@ -76,7 +76,7 @@ export async function proxy(request: NextRequest) {
 
         // Solicitante specialization
         if (userRole === 'solicitante') {
-            const allowedForSolicitante = ['/dashboard/requests', '/dashboard/profile', '/dashboard/access-denied', '/dashboard/occurrences'];
+            const allowedForSolicitante = ['/dashboard/requests', '/dashboard/profile', '/dashboard/access-denied'];
             const isAllowed = allowedForSolicitante.some(route => pathname.startsWith(route)) || pathname === '/dashboard';
 
             if (!isAllowed) {

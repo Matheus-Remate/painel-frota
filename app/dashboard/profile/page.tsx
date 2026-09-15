@@ -211,9 +211,12 @@ export default function ProfilePage() {
                             name="email"
                             type="email"
                             defaultValue={profile?.email}
+                            readOnly
+                            aria-describedby="email-help"
                             required
                             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                         />
+                        <p id="email-help" className="mt-1 text-xs text-slate-500">O e-mail de acesso é administrado pelo administrador para permanecer sincronizado com a autenticação.</p>
                     </div>
                     <div className="pt-4">
                         <button

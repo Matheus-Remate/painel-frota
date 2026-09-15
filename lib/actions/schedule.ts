@@ -2,9 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { requireManager } from '@/lib/security/authorization';
 
 export async function createReservation(formData: FormData) {
+    await requireManager();
     const supabase = await createClient();
 
     const vehicle_id = formData.get("vehicle_id") as string;
@@ -22,30 +23,10 @@ export async function createReservation(formData: FormData) {
         return { success: false, error: "A data final deve ser posterior à data inicial." };
     }
 
-    // Verificar conflitos de horário para o mesmo veículo
-    const { data: conflicts } = await supabase
-        .from("reservations")
-        .select("id")
-        .eq("vehicle_id", vehicle_id)
-        .neq("status", "CANCELLED")
-        .lt("start_date", end_date) // Existing start < New end
-        .gt("end_date", start_date); // Existing end > New start
-
-    if (conflicts && conflicts.length > 0) {
-        return { success: false, error: "Já existe uma reserva para este veículo neste horário." };
-    }
-
     try {
-        const { error } = await supabase
-            .from("reservations")
-            .insert({
-                vehicle_id,
-                driver_id,
-                start_date,
-                end_date,
-                purpose,
-                status: 'ACTIVE'
-            });
+        const { error } = await supabase.rpc('create_reservation_atomic', {
+            p_vehicle_id: vehicle_id, p_driver_id: driver_id, p_start_date: start_date, p_end_date: end_date, p_purpose: purpose,
+        });
 
         if (error) {
             console.error("Erro Supabase:", error);
@@ -62,6 +43,7 @@ export async function createReservation(formData: FormData) {
 }
 
 export async function cancelReservation(id: string) {
+    await requireManager();
     const supabase = await createClient();
 
     try {

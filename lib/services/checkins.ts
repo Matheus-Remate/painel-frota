@@ -1,127 +1,93 @@
 'use server';
 
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { revalidatePath } from "next/cache";
+import { createAdminClient } from '@/lib/supabase/admin';
+import { CHECKIN_BUCKET } from '@/lib/services/photos';
+import { revalidatePath } from 'next/cache';
 
-export async function createCheckin(formData: FormData, lastKnownOdometer?: number) {
-    const supabase = await createClient(); // Still needed for auth/storage session
-    const adminSupabase = createAdminClient(); // Needed for RLS bypass on writes
-    const vehicleId = formData.get('vehicleId') as string;
+type ChecklistItem = { status: 'OK' | 'REVIEW'; notes: string; photoPath?: string };
+type Checklist = Record<string, ChecklistItem>;
 
+const ALLOWED_FUEL = new Set(['EMPTY', '1/4', '1/2', '3/4', 'FULL']);
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+function parseChecklist(raw: FormDataEntryValue | null): Checklist | null {
     try {
-        // ... (parsing logic remains the same)
-        const odometerStr = formData.get('odometer') as string;
-        const odometer = parseInt(odometerStr) || lastKnownOdometer || 0;
-        const notes = (formData.get('notes') as string) || '';
-        const fuelLevel = (formData.get('fuelLevel') as string) || 'Não informado';
-        const driverName = (formData.get('driverName') as string) || 'Condutor não identificado';
-        const checklistJson = formData.get('checklist') as string;
+        const value = JSON.parse(String(raw ?? '{}')) as unknown;
+        if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+        const entries = Object.entries(value);
+        if (!entries.length) return null;
+        const checklist: Checklist = {};
+        for (const [key, item] of entries) {
+            if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+            const candidate = item as Record<string, unknown>;
+            if (candidate.status !== 'OK' && candidate.status !== 'REVIEW') return null;
+            const notes = String(candidate.notes ?? '').trim();
+            if (candidate.status === 'REVIEW' && notes.length < 3) return null;
+            checklist[key] = { status: candidate.status, notes };
+        }
+        return checklist;
+    } catch {
+        return null;
+    }
+}
 
-        let checklist: any = {};
-        if (checklistJson) {
-            try {
-                checklist = JSON.parse(checklistJson);
-            } catch (e) {
-                console.error('Error parsing checklist JSON:', e);
-            }
+export async function createCheckin(formData: FormData) {
+    const vehicleId = String(formData.get('vehicleId') ?? '');
+    const token = String(formData.get('token') ?? '');
+    const driverName = String(formData.get('driverName') ?? '').trim();
+    const returnNotes = String(formData.get('notes') ?? '').trim();
+    const odometer = Number(formData.get('odometer'));
+    const fuelLevel = String(formData.get('fuelLevel') ?? '');
+    const checklist = parseChecklist(formData.get('checklist'));
+    const admin = createAdminClient();
+
+    const { data: vehicle } = await admin.from('vehicles')
+        .select('id, license_plate, odometer, status')
+        .eq('id', vehicleId).eq('qr_access_token', token).is('deleted_at', null).maybeSingle();
+    if (!vehicle) return { success: false, error: 'QR Code inválido ou desativado.' };
+    if (driverName.length < 3) return { success: false, error: 'Informe o nome completo do condutor.' };
+    if (!Number.isInteger(odometer) || odometer < Number(vehicle.odometer ?? 0)) {
+        return { success: false, error: `O odômetro deve ser igual ou superior a ${vehicle.odometer ?? 0} km.` };
+    }
+    if (!ALLOWED_FUEL.has(fuelLevel)) return { success: false, error: 'Informe o nível de combustível.' };
+    if (!checklist) return { success: false, error: 'Revise todos os itens e descreva cada problema informado.' };
+
+    const photos = Array.from(formData.entries()).filter(
+        (entry): entry is [string, File] => entry[0].startsWith('photo_') && entry[1] instanceof File && entry[1].size > 0,
+    );
+    if (photos.some(([, file]) => !ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_PHOTO_BYTES)) {
+        return { success: false, error: 'As fotos devem ser JPEG, PNG, WebP ou HEIC e ter no máximo 5 MB.' };
+    }
+
+    const uploadedPaths: string[] = [];
+    try {
+        for (const [key, value] of photos) {
+            const itemId = key.slice('photo_'.length);
+            if (!checklist[itemId]) continue;
+            const extension = value.name.split('.').pop()?.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'jpg';
+            const path = `${vehicleId}/${crypto.randomUUID()}.${extension}`;
+            const { error } = await admin.storage.from(CHECKIN_BUCKET).upload(path, value, { contentType: value.type, upsert: false });
+            if (error) throw new Error(`Falha ao enviar foto: ${error.message}`);
+            checklist[itemId].photoPath = path;
+            uploadedPaths.push(path);
         }
 
-        // Ensure driver name is stored
-        checklist.driver_name = driverName;
-
-        const cleanliness = formData.get('status_0') === 'OK' ? 'OK' : 'ALERT';
-        const tiresExterior = formData.get('status_1') === 'OK' ? 'OK' : 'ALERT';
-        const dashLights = formData.get('status_2') === 'OK' ? 'OK' : 'ALERT';
-
-        // Process Photos
-        const photoUrls: string[] = [];
-        const entries = Array.from(formData.entries());
-
-        for (const [key, value] of entries) {
-            if (value instanceof File && value.size > 0) {
-                const isItemPhoto = key.startsWith('photo_');
-                const fileExt = value.name.split('.').pop();
-                const fileName = `${vehicleId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                // Storage upload - keep using regular client (Bucket is public or session based)
-                const { error: uploadError } = await supabase.storage
-                    .from('checkin-photos')
-                    .upload(fileName, value);
-
-                if (!uploadError) {
-                    const { data: { publicUrl } } = supabase.storage
-                        .from('checkin-photos')
-                        .getPublicUrl(fileName);
-
-                    photoUrls.push(publicUrl);
-
-                    if (isItemPhoto) {
-                        const itemId = key.replace('photo_', '');
-                        if (checklist[itemId]) {
-                            checklist[itemId].photoUrl = publicUrl;
-                        } else {
-                            checklist[itemId] = { status: 'REVIEW', photoUrl: publicUrl };
-                        }
-                    }
-                }
-            }
-        }
-
-        const { data: { user } } = await supabase.auth.getUser();
-        let driverId = null;
-
-        if (user) {
-            // Use admin to ensure we can read drivers if RLS is tight
-            const { data: driver } = await adminSupabase
-                .from('drivers')
-                .select('id')
-                .eq('user_id', user.id)
-                .maybeSingle();
-            driverId = driver?.id;
-        }
-
-        const checkinData = {
-            vehicle_id: vehicleId,
-            driver_id: driverId,
-            odometer,
-            cleanliness_status: cleanliness,
-            tires_exterior_status: tiresExterior,
-            dash_lights_status: dashLights,
-            repair_notes: notes,
-            fuel_level: fuelLevel,
-            photos: photoUrls,
-            checklist: checklist,
-            has_issues: photoUrls.length > 0 || notes.trim().length > 0 || (checklist && Object.values(checklist).some((v: any) => v.status !== 'OK')),
-            checked_in_at: new Date().toISOString(),
-        };
-
-        const { error: insertError } = await adminSupabase
-            .from('check_ins')
-            .insert(checkinData);
-
-        if (insertError) {
-            console.error('DB Insert Error:', insertError);
-            return { success: false, error: 'Erro ao salvar check-in.' };
-        }
-
-        // Update vehicle status using Admin to bypass RLS
-        await adminSupabase
-            .from('vehicles')
-            .update({
-                odometer: odometer,
-                status: 'IN_YARD'
-            })
-            .eq('id', vehicleId);
+        const hasIssues = Object.values(checklist).some((item) => item.status === 'REVIEW');
+        const { error: insertError } = await admin.rpc('register_vehicle_return', {
+            p_vehicle_id: vehicleId, p_token: token, p_driver_name: driverName, p_odometer: odometer,
+            p_fuel_level: fuelLevel, p_notes: returnNotes, p_checklist: checklist,
+            p_photo_paths: uploadedPaths, p_has_issues: hasIssues,
+        });
+        if (insertError) throw new Error(`Falha ao salvar devolução: ${insertError.message}`);
 
         revalidatePath('/dashboard/checkins');
         revalidatePath('/dashboard/vehicles');
         revalidatePath(`/mobile/vehicle/${vehicleId}`);
-
         return { success: true };
-
-    } catch (error: any) {
-        console.error('CRITICAL ERROR in createCheckin:', error);
-        return { success: false, error: 'Ocorreu um erro inesperado.' };
+    } catch (error) {
+        if (uploadedPaths.length) await admin.storage.from(CHECKIN_BUCKET).remove(uploadedPaths);
+        console.error('Falha ao registrar devolução:', error);
+        return { success: false, error: 'Não foi possível registrar a devolução. Os dados não foram confirmados.' };
     }
 }

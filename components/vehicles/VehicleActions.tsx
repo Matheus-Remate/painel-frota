@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Pencil, Trash2, Wrench, Loader2, AlertTriangle, X } from 'lucide-react';
-import { deleteVehicle, updateVehicle } from '@/lib/actions/vehicles';
+import { Pencil, Trash2, Wrench, Loader2, AlertTriangle } from 'lucide-react';
+import { deleteVehicle } from '@/lib/actions/vehicles';
 
 interface VehicleActionsProps {
     vehicleId: string;
@@ -28,7 +28,7 @@ export default function VehicleActions({ vehicleId, licensePlate }: VehicleActio
             } else {
                 setError(result.error || 'Erro ao excluir veículo');
             }
-        } catch (e) {
+        } catch {
             setError('Erro de conexão');
         } finally {
             setDeleting(false);
@@ -47,10 +47,10 @@ export default function VehicleActions({ vehicleId, licensePlate }: VehicleActio
                         <Pencil className="w-4 h-4" />
                         Editar Dados
                     </Link>
-                    <button className="w-full bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 py-2 rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2">
+                    <Link href={`/dashboard/occurrences/new?vehicleId=${vehicleId}`} className="w-full bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 py-2 rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2">
                         <Wrench className="w-4 h-4" />
-                        Solicitar Manutenção
-                    </button>
+                        Registrar ocorrência
+                    </Link>
                     <button
                         onClick={() => setShowDeleteModal(true)}
                         className="w-full bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/30 py-2 rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2"
@@ -75,7 +75,7 @@ export default function VehicleActions({ vehicleId, licensePlate }: VehicleActio
                                     Tem certeza que deseja excluir o veículo <span className="text-white font-mono font-bold">{licensePlate}</span>?
                                 </p>
                                 <p className="text-red-400 text-sm mb-4">
-                                    ⚠️ Esta ação não pode ser desfeita. Todos os dados e histórico do veículo serão perdidos.
+                                    O veículo sairá das telas operacionais, mas todo o histórico será preservado para auditoria.
                                 </p>
 
                                 {error && (
@@ -100,12 +100,12 @@ export default function VehicleActions({ vehicleId, licensePlate }: VehicleActio
                                         {deleting ? (
                                             <>
                                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                                Excluindo...
+                                                Arquivando...
                                             </>
                                         ) : (
                                             <>
                                                 <Trash2 className="w-4 h-4" />
-                                                Confirmar Exclusão
+                                                Confirmar arquivamento
                                             </>
                                         )}
                                     </button>

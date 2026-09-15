@@ -1,10 +1,11 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { requireManager } from '@/lib/security/authorization';
 
 export async function createVehicle(formData: FormData) {
+    await requireManager();
     // Usa cliente Admin para ignorar RLS temporariamente (já que é painel interno)
     const supabase = createAdminClient();
 
@@ -63,30 +64,13 @@ export async function createVehicle(formData: FormData) {
 }
 
 export async function deleteVehicle(vehicleId: string) {
+    await requireManager();
     const supabase = createAdminClient();
-
-    // 1. Fetch current data to preserve capacity info
-    const { data: vehicle, error: fetchError } = await supabase
-        .from('vehicles')
-        .select('capacity')
-        .eq('id', vehicleId)
-        .single();
-
-    if (fetchError) {
-        return { success: false, error: fetchError.message };
-    }
-
-    const newCapacity = {
-        ...(vehicle?.capacity as object),
-        _deleted: true
-    };
-
-    // 2. Soft delete using JSONB flag and valid Enum status
     const { error } = await supabase
         .from('vehicles')
         .update({
-            status: 'IN_MAINTENANCE',
-            capacity: newCapacity
+            deleted_at: new Date().toISOString(),
+            status: 'IN_MAINTENANCE'
         })
         .eq('id', vehicleId);
 
@@ -100,6 +84,7 @@ export async function deleteVehicle(vehicleId: string) {
 }
 
 export async function updateVehicle(vehicleId: string, formData: FormData) {
+    await requireManager();
     const supabase = createAdminClient();
 
     const updateData: Record<string, any> = {};

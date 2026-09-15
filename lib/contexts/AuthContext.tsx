@@ -33,9 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const supabase = createClient();
+    const [supabase] = useState(() => createClient());
 
-    const fetchProfile = async (userId: string) => {
+    const fetchProfile = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .rpc('get_my_profile')
@@ -49,20 +49,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setProfile(null);
             } else {
                 const profileData = data as UserProfile;
-                console.log("Success: Profile loaded via RPC:", profileData.email);
                 setProfile(profileData);
             }
         } catch (err) {
             console.error("Exception in fetchProfile:", err);
             setProfile(null);
         }
-    };
+    }, [supabase]);
 
     const refreshProfile = useCallback(async () => {
         if (user) {
-            await fetchProfile(user.id);
+            await fetchProfile();
         }
-    }, [user]);
+    }, [user, fetchProfile]);
 
     const handleSignOut = useCallback(async () => {
         try {
@@ -83,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (mounted && session?.user) {
                     setUser(session.user);
-                    await fetchProfile(session.user.id);
+                    await fetchProfile();
                 }
             } catch (err: any) {
                 // Ignore AbortError in logs as it's common during HMR/Strict Mode
@@ -102,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 try {
                     if (session?.user) {
                         setUser(session.user);
-                        await fetchProfile(session.user.id);
+                        await fetchProfile();
                     } else {
                         setUser(null);
                         setProfile(null);
@@ -121,10 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Safety timeout (increased to 8s for slower environments)
         const timeout = setTimeout(() => {
-            if (mounted && isLoading) {
-                console.warn("Auth check taking longer than expected. Continuing...");
-                setIsLoading(false);
-            }
+            if (mounted) setIsLoading(false);
         }, 8000);
 
         return () => {
@@ -132,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             subscription.unsubscribe();
             clearTimeout(timeout);
         };
-    }, []);
+    }, [fetchProfile, supabase]);
 
     const value = useMemo(() => ({
         user,

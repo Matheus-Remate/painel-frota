@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { requireManager } from '@/lib/security/authorization';
 
 export async function getDrivers() {
     const supabase = await createClient();
@@ -16,6 +17,7 @@ export async function getDrivers() {
 }
 
 export async function createDriver(formData: FormData) {
+    await requireManager();
     const supabase = await createClient();
 
     const name = formData.get('name') as string;
@@ -45,6 +47,7 @@ export async function createDriver(formData: FormData) {
 }
 
 export async function updateDriver(id: string, formData: FormData) {
+    await requireManager();
     const supabase = await createClient();
 
     const name = formData.get('name') as string;
@@ -75,6 +78,7 @@ export async function updateDriver(id: string, formData: FormData) {
 }
 
 export async function deleteDriver(id: string) {
+    await requireManager();
     const supabase = await createClient();
 
     // 1. Soft delete using deleted_at
