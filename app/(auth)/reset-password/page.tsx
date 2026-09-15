@@ -1,10 +1,12 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
-import { updatePassword } from "@/lib/services/auth";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Car, Loader2, Eye, EyeOff, CheckCircle, AlertCircle, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+type RecoveryState = "checking" | "ready" | "invalid";
 
 export default function ResetPasswordPage() {
     const router = useRouter();
@@ -13,28 +15,113 @@ export default function ResetPasswordPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [recoveryState, setRecoveryState] = useState<RecoveryState>("checking");
+    const [supabase] = useState(() => createClient());
+
+    useEffect(() => {
+        let mounted = true;
+
+        const markReady = () => {
+            if (mounted) setRecoveryState("ready");
+        };
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                if (session && (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+                    markReady();
+                }
+            }
+        );
+
+        const initializeRecovery = async () => {
+            const url = new URL(window.location.href);
+            const code = url.searchParams.get("code");
+
+            if (code) {
+                const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+                if (!exchangeError) {
+                    window.history.replaceState({}, document.title, url.pathname);
+                }
+            }
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!mounted) return;
+
+            setRecoveryState(session ? "ready" : "invalid");
+        };
+
+        initializeRecovery();
+
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
+    }, [supabase]);
 
     async function handleSubmit(formData: FormData) {
+        if (recoveryState !== "ready") {
+            setError("O link de recuperação é inválido ou expirou. Solicite um novo link.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
-            const result = await updatePassword(formData);
+            const password = formData.get("password") as string;
+            const confirmPassword = formData.get("confirmPassword") as string;
 
-            if (result.success) {
-                setSuccess(true);
-                setTimeout(() => {
-                    router.push('/login');
-                }, 3000);
-            } else {
-                setError(result.error || "Erro ao atualizar senha");
+            if (password !== confirmPassword) {
+                setError("As senhas não coincidem.");
+                return;
             }
+
+            if (password.length < 8) {
+                setError("A senha deve ter pelo menos 8 caracteres.");
+                return;
+            }
+
+            const { error: updateError } = await supabase.auth.updateUser({ password });
+            if (updateError) {
+                setError(updateError.message);
+                return;
+            }
+
+            await supabase.auth.signOut();
+            setSuccess(true);
+            setTimeout(() => {
+                router.replace('/login');
+            }, 3000);
         } catch (e) {
             console.error(e);
             setError("Erro ao conectar com o servidor");
         } finally {
             setLoading(false);
         }
+    }
+
+    if (recoveryState === "checking") {
+        return (
+            <div className="w-full max-w-md text-center">
+                <Loader2 className="w-8 h-8 text-brand-400 animate-spin mx-auto mb-4" />
+                <p className="text-slate-400">Validando o link de recuperação...</p>
+            </div>
+        );
+    }
+
+    if (recoveryState === "invalid") {
+        return (
+            <div className="w-full max-w-md">
+                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-xl text-center">
+                    <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-white mb-2">Link inválido ou expirado</h2>
+                    <p className="text-slate-400 mb-6">Solicite um novo link para redefinir sua senha.</p>
+                    <Link href="/forgot-password" className="text-brand-400 hover:text-brand-300 transition-colors">
+                        Solicitar novo link
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     if (success) {

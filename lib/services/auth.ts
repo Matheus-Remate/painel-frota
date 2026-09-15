@@ -3,8 +3,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { cache } from 'react';
+import { getPasswordResetRedirectUrl } from '@/lib/security/auth-redirect';
 
 export type UserRole = 'admin' | 'gestor' | 'solicitante';
 
@@ -16,6 +17,7 @@ export interface UserProfile {
     email: string;
     role: UserRole;
     avatar_url: string | null;
+    is_protected: boolean;
 }
 
 export interface AuthUser {
@@ -89,9 +91,15 @@ export async function requestPasswordReset(formData: FormData) {
         };
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
+    const requestHeaders = await headers();
+    const redirectTo = getPasswordResetRedirectUrl({
+        requestOrigin: requestHeaders.get('origin'),
+        configuredSiteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+        vercelProductionUrl: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+        vercelUrl: process.env.VERCEL_URL,
     });
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 
     if (error) {
         console.error('Password reset error:', error);

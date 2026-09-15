@@ -8,6 +8,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { Settings } from "lucide-react";
 import SettingsTabsContainer from "@/components/dashboard/settings-tabs-container";
+import type { UserProfile } from "@/lib/services/auth";
 
 export default async function SettingsPage() {
     const supabase = await createClient();
@@ -21,7 +22,7 @@ export default async function SettingsPage() {
         getUsageCategories()
     ]);
 
-    let users: any[] = [];
+    let users: UserProfile[] = [];
     let role = 'solicitante';
 
     if (user) {

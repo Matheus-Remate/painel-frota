@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, ShieldCheck } from "lucide-react";
 import { createUserAccount, updateUserAccount, updateUserRole, deleteUser } from "@/lib/services/settings";
 import type { UserProfile } from "@/lib/services/auth";
 
@@ -10,7 +10,7 @@ interface UsersTabProps {
 }
 
 export function UsersTab({ initialUsers }: UsersTabProps) {
-    const [users, setUsers] = useState<UserProfile[]>(initialUsers);
+    const users = initialUsers;
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -107,10 +107,18 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                             <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full" />
                                         ) : (
                                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-brand-800 flex items-center justify-center text-white text-xs font-bold">
-                                                {user.first_name[0]}{user.last_name[0]}
+                                                {user.first_name?.[0]}{user.last_name?.[0]}
                                             </div>
                                         )}
-                                        <span className="text-white font-medium">{user.first_name} {user.last_name}</span>
+                                        <div>
+                                            <span className="text-white font-medium">{user.first_name} {user.last_name}</span>
+                                            {user.is_protected && (
+                                                <span className="mt-1 flex items-center gap-1 text-xs text-amber-400">
+                                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                                    Administrador principal
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="py-3 px-4 text-slate-400">{user.email}</td>
@@ -118,7 +126,9 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                     <select
                                         value={user.role}
                                         onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                        className={`px-3 py-1 rounded-full text-xs font-semibold border-none cursor-pointer ${roleColors[user.role]}`}
+                                        disabled={user.is_protected}
+                                        title={user.is_protected ? 'A conta protegida deve permanecer administradora' : 'Alterar nível de acesso'}
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold border-none ${user.is_protected ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'} ${roleColors[user.role]}`}
                                     >
                                         <option value="admin">Administrador</option>
                                         <option value="gestor">Gestor</option>
@@ -134,13 +144,15 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                         >
                                             <Pencil className="w-4 h-4" />
                                         </button>
-                                        <button
-                                            onClick={() => handleDeleteUser(user.id)}
-                                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-                                            title="Excluir Usuário"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {!user.is_protected && (
+                                            <button
+                                                onClick={() => handleDeleteUser(user.id)}
+                                                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                title="Excluir Usuário"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -205,11 +217,13 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-300 mb-2">Nível de Acesso</label>
+                                {editingUser?.is_protected && <input type="hidden" name="role" value="admin" />}
                                 <select
                                     name="role"
                                     defaultValue={editingUser?.role || 'solicitante'}
+                                    disabled={editingUser?.is_protected}
                                     required
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all appearance-none"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
                                     <option value="solicitante">Solicitante</option>
                                     <option value="gestor">Gestor</option>

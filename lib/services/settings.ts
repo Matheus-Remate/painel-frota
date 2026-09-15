@@ -4,6 +4,12 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { cache } from 'react';
+import {
+    hasAdministrativeAccess,
+    isUserRole,
+    protectedAccountDeletionError,
+    protectedAccountRoleError,
+} from '@/lib/security/user-management';
 
 // Types
 export interface Brand {
@@ -15,7 +21,7 @@ export interface Model {
     id: string;
     brand_id: string;
     name: string;
-    brand?: any;
+    brand?: Brand | Brand[] | null;
 }
 
 export interface OccurrenceType {
@@ -175,25 +181,12 @@ export async function deleteModel(id: string) {
 
 // ============ USERS (Admin Only) ============
 
-export const getUsers = cache(async () => {
+async function requireAdmin() {
     const supabase = await createClient();
-
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('id, user_id, first_name, last_name, email, role, avatar_url, created_at')
-        .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-});
-
-export async function createUserAccount(formData: FormData) {
-    const supabase = await createClient();
-
-    // Check if current user is admin
     const { data: { user } } = await supabase.auth.getUser();
+
     if (!user) {
-        return { success: false, error: 'Não autorizado.' };
+        return { authorized: false as const, error: 'Não autorizado.' };
     }
 
     const { data: currentProfile } = await supabase
@@ -202,8 +195,34 @@ export async function createUserAccount(formData: FormData) {
         .eq('user_id', user.id)
         .single();
 
-    if (currentProfile?.role !== 'admin') {
-        return { success: false, error: 'Apenas administradores podem criar usuários.' };
+    if (!hasAdministrativeAccess(currentProfile?.role)) {
+        return { authorized: false as const, error: 'Apenas administradores podem gerenciar usuários.' };
+    }
+
+    return { authorized: true as const, user };
+}
+
+export const getUsers = cache(async () => {
+    const authorization = await requireAdmin();
+    if (!authorization.authorized) {
+        throw new Error(authorization.error);
+    }
+
+    const adminClient = createAdminClient();
+
+    const { data, error } = await adminClient
+        .from('profiles')
+        .select('id, user_id, first_name, last_name, email, role, avatar_url, created_at, is_protected')
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+});
+
+export async function createUserAccount(formData: FormData) {
+    const authorization = await requireAdmin();
+    if (!authorization.authorized) {
+        return { success: false, error: authorization.error };
     }
 
     // Create user with admin client
@@ -214,6 +233,10 @@ export async function createUserAccount(formData: FormData) {
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
     const role = formData.get('role') as string;
+
+    if (!isUserRole(role)) {
+        return { success: false, error: 'Nível de acesso inválido.' };
+    }
 
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email,
@@ -232,6 +255,9 @@ export async function createUserAccount(formData: FormData) {
         // If user already exists in Auth, let's see if we can just sync the profile
         if (createError.message.includes('already been registered')) {
             const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
+            if (listError) {
+                return { success: false, error: listError.message };
+            }
             targetUser = users.find(u => u.email === email) || null;
 
             if (!targetUser) {
@@ -250,7 +276,6 @@ export async function createUserAccount(formData: FormData) {
             }
 
             // If we're here, user is in Auth but missing Profile (the "desync" case)
-            console.log(`Synchronizing missing profile for existing auth user: ${email}`);
         } else {
             return { success: false, error: createError.message };
         }
@@ -281,22 +306,9 @@ export async function createUserAccount(formData: FormData) {
 }
 
 export async function updateUserAccount(userId: string, formData: FormData) {
-    const supabase = await createClient();
-
-    // Check if current user is admin
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        return { success: false, error: 'Não autorizado.' };
-    }
-
-    const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-    if (currentProfile?.role !== 'admin') {
-        return { success: false, error: 'Apenas administradores podem gerenciar usuários.' };
+    const authorization = await requireAdmin();
+    if (!authorization.authorized) {
+        return { success: false, error: authorization.error };
     }
 
     const adminClient = createAdminClient();
@@ -304,7 +316,7 @@ export async function updateUserAccount(userId: string, formData: FormData) {
     // Get the target profile to find the auth user_id
     const { data: targetProfile, error: profileError } = await adminClient
         .from('profiles')
-        .select('user_id')
+        .select('user_id, is_protected')
         .eq('id', userId)
         .single();
 
@@ -318,6 +330,15 @@ export async function updateUserAccount(userId: string, formData: FormData) {
     const lastName = formData.get('lastName') as string;
     const role = formData.get('role') as string;
     const password = formData.get('password') as string;
+
+    if (!isUserRole(role)) {
+        return { success: false, error: 'Nível de acesso inválido.' };
+    }
+
+    const protectedRoleError = protectedAccountRoleError(targetProfile.is_protected, role);
+    if (protectedRoleError) {
+        return { success: false, error: protectedRoleError };
+    }
 
     // 1. Update Profile (Names and Role)
     const { error: updateProfileError } = await adminClient
@@ -334,7 +355,10 @@ export async function updateUserAccount(userId: string, formData: FormData) {
     }
 
     // 2. Update Auth User (Metadata and optionally Password)
-    const updateData: any = {
+    const updateData: {
+        user_metadata: { first_name: string; last_name: string; role: string };
+        password?: string;
+    } = {
         user_metadata: {
             first_name: firstName,
             last_name: lastName,
@@ -360,26 +384,32 @@ export async function updateUserAccount(userId: string, formData: FormData) {
 }
 
 export async function updateUserRole(userId: string, newRole: string) {
-    const supabase = await createClient();
-
-    // Check if current user is admin
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        return { success: false, error: 'Não autorizado.' };
+    const authorization = await requireAdmin();
+    if (!authorization.authorized) {
+        return { success: false, error: authorization.error };
     }
 
-    const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-    if (currentProfile?.role !== 'admin') {
-        return { success: false, error: 'Apenas administradores podem alterar roles.' };
+    if (!isUserRole(newRole)) {
+        return { success: false, error: 'Nível de acesso inválido.' };
     }
 
     // Update using admin client to bypass RLS
     const adminClient = createAdminClient();
+
+    const { data: targetProfile, error: profileError } = await adminClient
+        .from('profiles')
+        .select('is_protected')
+        .eq('id', userId)
+        .single();
+
+    if (profileError || !targetProfile) {
+        return { success: false, error: 'Usuário não encontrado.' };
+    }
+
+    const protectedRoleError = protectedAccountRoleError(targetProfile.is_protected, newRole);
+    if (protectedRoleError) {
+        return { success: false, error: protectedRoleError };
+    }
 
     const { error } = await adminClient
         .from('profiles')
@@ -395,22 +425,9 @@ export async function updateUserRole(userId: string, newRole: string) {
 }
 
 export async function deleteUser(userId: string) {
-    const supabase = await createClient();
-
-    // Check if current user is admin
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        return { success: false, error: 'Não autorizado.' };
-    }
-
-    const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-    if (currentProfile?.role !== 'admin') {
-        return { success: false, error: 'Apenas administradores podem excluir usuários.' };
+    const authorization = await requireAdmin();
+    if (!authorization.authorized) {
+        return { success: false, error: authorization.error };
     }
 
     // Delete using admin client
@@ -437,7 +454,7 @@ export async function deleteUser(userId: string) {
     // Step 1: Get the profile to find the auth user_id
     const { data: targetProfile, error: profileError } = await adminClient
         .from('profiles')
-        .select('user_id')
+        .select('user_id, is_protected')
         .eq('id', userId)
         .single();
 
@@ -449,7 +466,12 @@ export async function deleteUser(userId: string) {
 
     const authUserId = targetProfile.user_id;
 
-    if (authUserId === user.id) {
+    const protectedDeletionError = protectedAccountDeletionError(targetProfile.is_protected);
+    if (protectedDeletionError) {
+        return { success: false, error: protectedDeletionError };
+    }
+
+    if (authUserId === authorization.user.id) {
         return { success: false, error: 'Você não pode excluir sua própria conta.' };
     }
 

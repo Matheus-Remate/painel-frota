@@ -1,20 +1,3 @@
--- Seed do Usuário Admin Padrão
--- Este arquivo deve ser executado APÓS a migration 007
-
--- Criar usuário admin via Supabase Auth
--- NOTA: Este seed deve ser executado via Supabase Dashboard ou CLI
--- pois o INSERT direto em auth.users requer permissões especiais
-
--- Para criar o usuário admin manualmente no Supabase Dashboard:
--- 1. Vá em Authentication > Users > Add User
--- 2. Email: matheus.marques@remateweb.com
--- 3. Password: Remate2020##
--- 4. Execute o SQL abaixo para atualizar o role para admin
-
--- Após criar o usuário no Dashboard, execute:
--- UPDATE profiles SET role = 'admin', first_name = 'Matheus', last_name = 'Marques'
--- WHERE email = 'matheus.marques@remateweb.com';
-
 -- Seed de Marcas de Exemplo
 INSERT INTO brands (name) VALUES 
   ('Fiat'),
