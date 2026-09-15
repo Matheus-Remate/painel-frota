@@ -19,6 +19,7 @@ export default async function VehicleMobilePage({ params, searchParams }: { para
     const [lastReturn, unresolved] = await Promise.all([getLastCheckin(id, token), getUnresolvedOccurrences(id, token)]);
     const status = STATUS[vehicle.status as keyof typeof STATUS] ?? ['Status desconhecido', 'text-slate-300 bg-slate-800 border-slate-700'];
     const tokenQuery = `token=${encodeURIComponent(token)}`;
+    const checkoutBlocked = vehicle.status !== 'IN_YARD' || Boolean(lastReturn?.has_issues) || unresolved.length > 0;
 
     return (
         <main className="min-h-screen bg-slate-950 p-6 text-white">
@@ -51,7 +52,7 @@ export default async function VehicleMobilePage({ params, searchParams }: { para
                 </section>
 
                 <div className="grid gap-3">
-                    <Link aria-disabled={vehicle.status !== 'IN_YARD'} href={vehicle.status === 'IN_YARD' ? `/mobile/vehicle/${id}/checkout?${tokenQuery}` : '#'} className={`flex items-center justify-between rounded-2xl p-5 font-bold ${vehicle.status === 'IN_YARD' ? 'bg-emerald-600 hover:bg-emerald-500' : 'pointer-events-none bg-slate-800 text-slate-500'}`}>Retirada <ArrowRight className="size-5" /></Link>
+                    <Link aria-disabled={checkoutBlocked} href={!checkoutBlocked ? `/mobile/vehicle/${id}/checkout?${tokenQuery}` : '#'} className={`flex items-center justify-between rounded-2xl p-5 font-bold ${!checkoutBlocked ? 'bg-emerald-600 hover:bg-emerald-500' : 'pointer-events-none bg-slate-800 text-slate-500'}`}>Retirada <ArrowRight className="size-5" /></Link>
                     <Link aria-disabled={vehicle.status !== 'ON_ROUTE'} href={vehicle.status === 'ON_ROUTE' ? `/mobile/vehicle/${id}/return?${tokenQuery}` : '#'} className={`flex items-center justify-between rounded-2xl border p-5 font-bold ${vehicle.status === 'ON_ROUTE' ? 'border-slate-700 bg-slate-800 hover:bg-slate-700' : 'pointer-events-none border-slate-800 bg-slate-900 text-slate-600'}`}>Devolução <ArrowLeft className="size-5" /></Link>
                 </div>
                 <p className="text-center text-xs text-slate-600">O QR identifica este veículo. Não compartilhe o endereço fora da operação.</p>

@@ -139,6 +139,18 @@ CREATE TRIGGER notify_managers_after_checkin
   AFTER INSERT ON public.check_ins
   FOR EACH ROW EXECUTE FUNCTION public.notify_managers_of_return();
 
+-- Reconcile legacy records so a vehicle with an unresolved return alert cannot appear available.
+UPDATE public.vehicles AS vehicle
+SET status = 'AWAITING_REPAIR'::public.vehicle_status
+WHERE vehicle.deleted_at IS NULL
+  AND vehicle.status = 'IN_YARD'::public.vehicle_status
+  AND EXISTS (
+    SELECT 1 FROM public.check_ins AS checkin
+    WHERE checkin.vehicle_id = vehicle.id
+      AND checkin.has_issues
+      AND NOT COALESCE(checkin.resolved, FALSE)
+  );
+
 ALTER TABLE public.vehicle_movements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fleet_notifications ENABLE ROW LEVEL SECURITY;
 
