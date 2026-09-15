@@ -1,14 +1,12 @@
 'use client';
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "@/lib/services/auth";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
-    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -20,17 +18,19 @@ export default function LoginPage() {
         try {
             const result = await signIn(formData);
             if (result?.success && result.redirect) {
-                router.push(result.redirect);
-                return; // Manter loading até redirecionar
+                // A navegação completa garante que os cookies de sessão gravados
+                // pela server action sejam lidos imediatamente pelo dashboard.
+                window.location.replace(result.redirect);
+                return; // Mantém o estado "Entrando..." até a nova página carregar.
             } else if (result && !result.success) {
-                setError(result.error || "Credenciais inválidas");
+                setError(result.error || "E-mail ou senha inválidos.");
             }
         } catch (e) {
             console.error(e);
-            setError("Erro ao conectar com o servidor");
-        } finally {
-            setLoading(false);
+            setError("Não foi possível entrar. Tente novamente.");
         }
+
+        setLoading(false);
     }
 
     return (

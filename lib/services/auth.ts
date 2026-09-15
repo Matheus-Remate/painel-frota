@@ -32,8 +32,12 @@ export interface AuthUser {
 export async function signIn(formData: FormData) {
     const supabase = await createClient();
 
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const email = String(formData.get('email') ?? '').trim().toLowerCase();
+    const password = String(formData.get('password') ?? '');
+
+    if (!email || !password) {
+        return { success: false, error: 'E-mail ou senha inválidos.' };
+    }
 
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -41,7 +45,9 @@ export async function signIn(formData: FormData) {
     });
 
     if (error) {
-        return { success: false, error: error.message };
+        // Não revela se foi o e-mail ou a senha, nem expõe mensagens internas
+        // do provedor de autenticação.
+        return { success: false, error: 'E-mail ou senha inválidos.' };
     }
 
     // Get user profile to determine redirect
