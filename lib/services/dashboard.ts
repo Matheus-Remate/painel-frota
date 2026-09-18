@@ -10,7 +10,7 @@ import { generateVehicleQRCode } from '@/lib/utils/qrcode';
 
 export type FleetSearchResult = {
     id: string;
-    kind: 'vehicle' | 'driver';
+    kind: 'vehicle' | 'driver' | 'reservation';
     title: string;
     subtitle: string;
     href: string;
@@ -23,16 +23,18 @@ export async function searchFleet(query: string): Promise<FleetSearchResult[]> {
 
     const supabase = await createClient();
     const pattern = `%${term}%`;
-    const [{ data: vehicles, error: vehicleError }, { data: drivers, error: driverError }] = await Promise.all([
+    const [{ data: vehicles, error: vehicleError }, { data: drivers, error: driverError }, { data: reservations, error: reservationError }] = await Promise.all([
         supabase.from('vehicles').select('id, license_plate, model:models(name, brand:brands(name))').is('deleted_at', null).ilike('license_plate', pattern).limit(6),
         supabase.from('drivers').select('id, name, cnh_category').is('deleted_at', null).ilike('name', pattern).limit(6),
+        supabase.from('reservations').select('id, vehicle_id, purpose, driver_name, driver:drivers(name), vehicle:vehicles(id, license_plate, model:models(name, brand:brands(name)))').or(`purpose.ilike.${pattern},driver_name.ilike.${pattern}`).neq('status', 'CANCELLED').limit(6),
     ]);
-    if (vehicleError) throw vehicleError;
+    if (vehicleError || reservationError) throw vehicleError || reservationError;
     if (driverError) throw driverError;
 
     return [
         ...(vehicles || []).map((vehicle: any) => ({ id: vehicle.id, kind: 'vehicle' as const, title: `${vehicle.model?.brand?.name || ''} ${vehicle.model?.name || 'Veículo'}`.trim(), subtitle: vehicle.license_plate, href: `/dashboard/vehicles/${vehicle.id}` })),
         ...(drivers || []).map((driver: any) => ({ id: driver.id, kind: 'driver' as const, title: driver.name, subtitle: driver.cnh_category ? `CNH ${driver.cnh_category}` : 'Condutor', href: `/dashboard/drivers/${driver.id}/edit` })),
+        ...(reservations || []).map((reservation: any) => { const vehicle = Array.isArray(reservation.vehicle) ? reservation.vehicle[0] : reservation.vehicle; const driver = Array.isArray(reservation.driver) ? reservation.driver[0] : reservation.driver; return { id: reservation.id, kind: 'reservation' as const, title: `${vehicle?.model?.brand?.name || ''} ${vehicle?.model?.name || 'Veículo'}`.trim(), subtitle: `${vehicle?.license_plate || ''} · ${reservation.purpose || 'Evento'} · ${reservation.driver_name || driver?.name || 'Condutor não informado'}`, href: `/dashboard/vehicles/${vehicle?.id || reservation.vehicle_id}` }; }),
     ].slice(0, 8);
 }
 

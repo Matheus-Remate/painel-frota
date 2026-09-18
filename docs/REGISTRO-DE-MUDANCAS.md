@@ -133,3 +133,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável a registros existentes; migration aditiva.
 - Validação: typecheck, lint e 26 testes passaram.
 - Publicação: commit `29b30c2`, branch `main`, enviado a `origin/main`; migration `038` pendente de aplicação no Supabase.
+
+## 2026-09-18 — filtros de reservas e busca avançada
+
+- Escopo: eventos concluídos há mais de 7 dias ficam ocultos por padrão na listagem, com botão para exibi-los; filtros e busca permanecem combináveis.
+- Busca global: pesquisa placa/modelo, evento e condutor textual de reserva, retornando o veículo com placa, evento e condutor como contexto.
+- Dados e migrations: nenhuma alteração de dados ou schema.
+- Backup: não aplicável.
+- Validação: typecheck, lint e testes antes da publicação.
+- Publicação: pendente de validação e envio a `main`.
