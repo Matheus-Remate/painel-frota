@@ -159,4 +159,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma alteração de dados ou schema; são reutilizados o token de QR, o apelido e o último movimento de retirada já existentes.
 - Backup: não aplicável, pois a mudança é de interface e leitura.
 - Validação: contrato automatizado do hub QR, `npm run typecheck`, `npm run lint -- --quiet` e `npm test`.
-- Publicação: pendente de commit e envio para `main`.
+- Publicação: commit `0e19eff`, branch `main`; envio para `origin/main` pendente nesta etapa.
