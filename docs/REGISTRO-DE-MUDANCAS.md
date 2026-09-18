@@ -13,6 +13,15 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Validação: testes, build, checagens de banco e fluxo manual executados.
 - Publicação: commit, branch, ambiente e resultado.
 
+## 2026-09-17 — shell Ops Command e centro de comando da frota
+
+- Escopo: substituída a navegação lateral do painel autenticado por uma barra operacional horizontal; redesenhado o Dashboard com indicadores, escala de alocação, atalhos para QR/despacho, eventos críticos e fila de aprovações.
+- Impacto operacional: gestores e administradores passam a acessar a operação diária e as rotas prioritárias a partir de uma estrutura única, responsiva e orientada a status; nenhuma regra de reserva, QR, aprovação ou alerta foi alterada.
+- Dados e migrations: nenhuma migration ou alteração de dados.
+- Backup: não aplicável, pois a alteração é exclusivamente de apresentação e navegação.
+- Validação: `npm run typecheck` e `npm run build` com variáveis Supabase neutras de compilação.
+- Publicação: pendente de commit e envio para `main`.
+
 ## 2026-09-17 — v1: retirada por reserva, alertas e auditoria
 
 - Escopo: retirada vinculada à reserva via QR, privacidade configurável do QR, compressão de fotos, alertas `URGENT/HIGH/MEDIUM/LOW`, reclassificações auditáveis, edição protegida de reservas e correção auditável de devoluções.

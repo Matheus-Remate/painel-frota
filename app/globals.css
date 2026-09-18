@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    --background: 248 250 252;
-    --foreground: 15 23 42;
-    --bg-body: 248 250 252;
-    --bg-card: 255 255 255;
-    --card: 255 255 255;
-    --card-foreground: 15 23 42;
-    --popover: 255 255 255;
-    --popover-foreground: 15 23 42;
+    --background: 11 15 23;
+    --foreground: 241 245 249;
+    --bg-body: 11 15 23;
+    --bg-card: 19 26 38;
+    --card: 19 26 38;
+    --card-foreground: 241 245 249;
+    --popover: 19 26 38;
+    --popover-foreground: 241 245 249;
     --primary: 153 0 0;
     /* brand-900 */
     --primary-foreground: 255 255 255;
-    --secondary: 241 245 249;
-    --secondary-foreground: 15 23 42;
-    --muted: 241 245 249;
-    --muted-foreground: 100 116 139;
-    --accent: 241 245 249;
-    --accent-foreground: 15 23 42;
+    --secondary: 24 34 50;
+    --secondary-foreground: 241 245 249;
+    --muted: 24 34 50;
+    --muted-foreground: 148 163 184;
+    --accent: 30 41 59;
+    --accent-foreground: 241 245 249;
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
-    --border: 226 232 240;
-    --input: 226 232 240;
+    --border: 35 47 69;
+    --input: 35 47 69;
     --ring: 153 0 0;
     --radius: 0.75rem;
   }
@@ -64,7 +64,9 @@
 
   body {
     @apply bg-bg-body text-foreground transition-colors duration-300;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    background-image: radial-gradient(circle at 50% -20%, rgb(30 41 59 / .55), transparent 40%);
   }
 }
 
@@ -75,4 +77,11 @@
   svg {
     color: currentColor;
   }
+}
+
+@layer components {
+  .ops-panel { @apply rounded-xl border border-[#232f45] bg-[#131a26] shadow-[0_12px_32px_rgba(0,0,0,0.14)]; }
+  .ops-card { @apply rounded-lg border border-[#232f45] bg-[#182232] transition-colors hover:bg-[#1e2b3e]; }
+  .ops-label { @apply text-[11px] font-bold uppercase tracking-wider text-slate-400; }
+  .ops-mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
 }

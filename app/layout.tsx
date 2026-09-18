@@ -5,7 +5,7 @@ import { AuthProvider } from "@/lib/contexts/AuthContext";
 import { SidebarProvider } from "@/lib/contexts/SidebarContext";
 
 export const metadata: Metadata = {
-    title: "Controle de Frota",
+    title: "Frota • Programa Leilões",
     description: "Sistema de gestão de frota com check-in mobile e dashboard desktop",
 };
 
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="pt-BR" suppressHydrationWarning>
-            <body>
+            <body className="antialiased">
                 <ThemeProvider
                     attribute="class"
                     forcedTheme="dark"
