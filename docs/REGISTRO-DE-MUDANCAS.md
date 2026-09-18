@@ -93,4 +93,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: `037_emergency_qr_reservation.sql` adiciona `driver_name` e `is_emergency` às reservas, torna opcional o vínculo de condutor somente para a reserva emergencial e atualiza as RPCs atômicas de retirada/devolução.
 - Backup: não aplicável a dados existentes; a migration é aditiva e não remove registros. A alteração de nulidade em `reservations.driver_id` é necessária para não gerar um condutor fictício sem CPF/CNH.
 - Validação: contrato automatizado da reserva emergencial e de seu encerramento na devolução; typecheck, lint e 23 testes passaram. A compilação de produção passou, mas a geração estática local exigiu as variáveis públicas do Supabase, ausentes neste workspace, e por isso não é uma validação local conclusiva de prerender.
-- Publicação: migration `037` aplicada com sucesso no Supabase de produção; implantação desta revisão pendente do envio do commit para `main`.
+- Publicação: migration `037` aplicada com sucesso no Supabase de produção; commit `7e83677`, branch `main`, enviado a `origin/main` para implantação automática.
