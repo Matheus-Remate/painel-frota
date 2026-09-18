@@ -13,6 +13,15 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Validação: testes, build, checagens de banco e fluxo manual executados.
 - Publicação: commit, branch, ambiente e resultado.
 
+## 2026-09-17 — ajuste de densidade do centro de comando e busca instantânea
+
+- Escopo: corrigida a largura dos indicadores do Dashboard; reordenada a coluna operacional em Reparos e alertas, Aprovações e QR; adicionado seletor de veículo com prévia do QR; adicionadas buscas instantâneas global e em Veículos. A busca de Revisões continua filtrando durante a digitação.
+- Impacto operacional: a tela passa a manter reparos, liberações pendentes e despacho QR na mesma coluna e na ordem de decisão; gestores encontram veículos e condutores sem sair da barra de busca.
+- Dados e migrations: nenhuma migration ou alteração de dados.
+- Backup: não aplicável, pois não há escrita, exclusão ou alteração de schema.
+- Validação: `npm run typecheck` e `npm run build` com variáveis Supabase neutras de compilação.
+- Publicação: pendente de commit e envio para `main`.
+
 ## 2026-09-17 — shell Ops Command e centro de comando da frota
 
 - Escopo: substituída a navegação lateral do painel autenticado por uma barra operacional horizontal; redesenhado o Dashboard com indicadores, escala de alocação, atalhos para QR/despacho, eventos críticos e fila de aprovações.
@@ -39,3 +48,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável a dados, pois não há escrita, exclusão ou alteração de schema. A definição SQL existente da função foi registrada como contingência antes da validação.
 - Validação: checagem de vínculo Auth/perfil do administrador, inspeção da função e grant no Supabase, confirmação visual do envio do e-mail de recuperação em produção, typecheck, lint, 17 testes e build após a alteração.
 - Publicação: commit `79b9b19`, branch `main`, enviado a `origin/main`; rota de recuperação em produção respondeu HTTP 200 após a publicação automática da Vercel.
+
+## 2026-09-17 — correção do bloqueio de perfil no listener Auth
+
+- Escopo: removida a chamada assíncrona ao Supabase de dentro do callback `onAuthStateChange`; a leitura de perfil agora é agendada após o callback encerrar.
+- Impacto operacional: elimina a condição em que o cabeçalho autenticado é exibido, mas o perfil do cliente fica nulo por bloqueio do cliente Supabase.
+- Dados e migrations: nenhuma alteração de dados ou schema. Confirmados no banco de produção o vínculo Auth/perfil de Tiago Martinez e a leitura sob a RLS do papel `authenticated`.
+- Backup: não aplicável; a alteração é exclusivamente de fluxo no cliente e a consulta de validação foi encerrada com `ROLLBACK`.
+- Validação: contrato automatizado do adiamento do callback, typecheck, lint, testes, build e nova verificação da sessão publicada após implantação.
+- Publicação: pendente das validações desta correção.

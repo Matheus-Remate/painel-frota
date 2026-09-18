@@ -6,6 +6,53 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { cache } from 'react';
 import { requireManager } from '@/lib/security/authorization';
 import { signChecklistPhotos, signCheckinPhotos } from '@/lib/services/photos';
+import { generateVehicleQRCode } from '@/lib/utils/qrcode';
+
+export type FleetSearchResult = {
+    id: string;
+    kind: 'vehicle' | 'driver';
+    title: string;
+    subtitle: string;
+    href: string;
+};
+
+export async function searchFleet(query: string): Promise<FleetSearchResult[]> {
+    await requireManager();
+    const term = query.trim();
+    if (term.length < 2) return [];
+
+    const supabase = await createClient();
+    const pattern = `%${term}%`;
+    const [{ data: vehicles, error: vehicleError }, { data: drivers, error: driverError }] = await Promise.all([
+        supabase.from('vehicles').select('id, license_plate, model:models(name, brand:brands(name))').is('deleted_at', null).ilike('license_plate', pattern).limit(6),
+        supabase.from('drivers').select('id, name, cnh_category').is('deleted_at', null).ilike('name', pattern).limit(6),
+    ]);
+    if (vehicleError) throw vehicleError;
+    if (driverError) throw driverError;
+
+    return [
+        ...(vehicles || []).map((vehicle: any) => ({ id: vehicle.id, kind: 'vehicle' as const, title: `${vehicle.model?.brand?.name || ''} ${vehicle.model?.name || 'Veículo'}`.trim(), subtitle: vehicle.license_plate, href: `/dashboard/vehicles/${vehicle.id}` })),
+        ...(drivers || []).map((driver: any) => ({ id: driver.id, kind: 'driver' as const, title: driver.name, subtitle: driver.cnh_category ? `CNH ${driver.cnh_category}` : 'Condutor', href: `/dashboard/drivers/${driver.id}/edit` })),
+    ].slice(0, 8);
+}
+
+export async function getVehicleQrPreviews() {
+    await requireManager();
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('vehicles')
+        .select('id, license_plate, qr_access_token, model:models(name, brand:brands(name))')
+        .is('deleted_at', null)
+        .order('license_plate')
+        .limit(100);
+    if (error) throw error;
+    return Promise.all((data || []).map(async (vehicle: any) => ({
+        id: vehicle.id,
+        licensePlate: vehicle.license_plate,
+        label: `${vehicle.model?.brand?.name || ''} ${vehicle.model?.name || 'Veículo'} — ${vehicle.license_plate}`.trim(),
+        qrCodeUrl: (await generateVehicleQRCode(vehicle.id, vehicle.license_plate, vehicle.qr_access_token)).dataUrl,
+    })));
+}
 
 export async function resolveCheckin(id: string, notes: string) {
     const authorized = await requireManager();
