@@ -86,6 +86,8 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 - A página aberta pelo QR mostra marca/modelo, placa, apelido quando cadastrado, status de uso e, quando ativo, o nome do condutor em uso; também apresenta até seis revisões recentes (data e situação). Não exibe observações, fotos, odômetro ou combustível.
 
+- Na retirada programada pelo QR, o condutor vê o resumo e as observações da última devolução antes de confirmar. Fotos continuam restritas ao painel autenticado. No detalhe autenticado do veículo, o histórico abre checklist, apontamentos, odômetro, combustível e galeria de fotos; os caminhos privados são convertidos em URLs temporárias no servidor.
+
 - A impressão do QR na ficha do veículo usa uma etiqueta exclusiva de meia folha A4 (210 × 148,5 mm), com apenas marca/modelo, ano, combustível, chassi, RENAVAM, placa e QR Code. Todo o restante da aplicação é ocultado no modo de impressão.
 
 - Em 2026-09-17, a leitura de perfil no cliente passou a ter fallback RLS após a RPC `get_my_profile`; o listener de Auth agenda e serializa essa leitura fora do callback do Supabase, com uma única tentativa curta para `AbortError`, evitando bloqueio e corrida de sessão. A função, a permissão `authenticated` e a leitura RLS do perfil de produção foram verificadas antes da publicação.

@@ -160,3 +160,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável, pois a mudança é de interface e leitura.
 - Validação: contrato automatizado do hub QR, `npm run typecheck`, `npm run lint -- --quiet` e `npm test`.
 - Publicação: commits `0e19eff` (funcionalidade) e `24341aa` (registro), branch `main`, enviados a `origin/main`; `/login` respondeu HTTP 200 pela Vercel após o envio.
+
+## 2026-09-18 — evidências completas no histórico e contexto de retirada
+
+- Escopo: corrigido o carregamento de fotos privadas no histórico da ficha do veículo. O detalhe de cada devolução agora exibe checklist, gravidade, observações, odômetro, combustível e galeria com ampliação das evidências. A retirada programada por QR passa a mostrar o resumo da última devolução antes da confirmação.
+- Impacto operacional: gestor/admin conseguem auditar os apontamentos e fotos que foram registrados na devolução; o condutor recebe contexto operacional antes de assumir o veículo. Fotos permanecem fora do QR público para preservar a privacidade e o acesso controlado ao bucket.
+- Dados e migrations: nenhuma alteração de schema ou de registros. Os caminhos já gravados em `check_ins.photo_paths` são assinados temporariamente no servidor ao abrir a ficha.
+- Backup: não aplicável, pois não há escrita, exclusão ou alteração de dados.
+- Validação: revisão das rotas e estados de UX, contrato automatizado das evidências, `npm run typecheck`, `npm run lint -- --quiet` e `npm test`.
+- Publicação: pendente de commit e envio para `main`.

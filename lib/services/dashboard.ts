@@ -191,6 +191,8 @@ export const getVehicleById = cache(async (id: string) => {
           fuel_level,
           return_notes,
           checklist,
+          photo_paths,
+          photos,
           driver:drivers(name)
         ),
         reservations (
@@ -228,7 +230,16 @@ export const getVehicleById = cache(async (id: string) => {
         (data as any).operational_status = ['AWAITING_REPAIR', 'IN_MAINTENANCE'].includes(data.status) ? data.status : (data.status === 'ON_ROUTE' || (data.reservations || []).some((reservation: any) => reservation.status === 'ACTIVE' && new Date(reservation.start_date).getTime() <= now && new Date(reservation.end_date).getTime() >= now) ? 'ON_ROUTE' : data.status);
     }
 
-    return data;
+    if (!data) return data;
+
+    return {
+        ...data,
+        check_ins: await Promise.all((data.check_ins || []).map(async (checkin: any) => ({
+            ...checkin,
+            checklist: await signChecklistPhotos(checkin.checklist),
+            photos: await signCheckinPhotos(checkin.photo_paths, checkin.photos),
+        }))),
+    };
 });
 
 export const getDrivers = cache(async () => {

@@ -1,6 +1,6 @@
 import CheckoutForm from '@/components/mobile/checkout-form';
 import { getLastCheckin, getScheduledPickup, getUnresolvedOccurrences, getVehicleDetails, hasBlockingReturn } from '@/lib/services/mobile';
-import { AlertTriangle, ArrowLeft, CheckCircle, Fuel, Gauge } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle, ClipboardCheck, Fuel, Gauge } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blocksTravel } from '@/lib/domain/alert-level';
@@ -23,6 +23,7 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
             </section>
             {pickup && <section className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-200"><strong>Condutor previsto:</strong> {pickup.driver?.name}<br /><strong>Retirada:</strong> {new Date(pickup.start_date).toLocaleString('pt-BR')}<br /><strong>Devolução:</strong> {new Date(pickup.end_date).toLocaleString('pt-BR')}</section>}
             {lastReturn && <section className="grid grid-cols-2 gap-3 text-sm">{vehicle.qr_display_settings?.odometer !== false && <div className="rounded-xl border border-slate-800 bg-slate-900 p-4"><Gauge className="mb-2 size-5 text-emerald-400" />{lastReturn.odometer} km</div>}{vehicle.qr_display_settings?.fuel !== false && <div className="rounded-xl border border-slate-800 bg-slate-900 p-4"><Fuel className="mb-2 size-5 text-amber-400" />{lastReturn.fuel_level || 'Não informado'}</div>}</section>}
+            {lastReturn && (lastReturn.return_notes || lastReturn.repair_notes || lastReturn.has_issues) && <section className={`rounded-xl border p-4 text-sm ${lastReturn.has_issues && !lastReturn.resolved ? 'border-amber-500/30 bg-amber-500/10 text-amber-100' : 'border-slate-800 bg-slate-900 text-slate-200'}`}><div className="flex gap-3"><ClipboardCheck className="size-5 shrink-0 text-emerald-400" /><div><h2 className="font-semibold">Última devolução</h2><p className="mt-1 text-slate-300">{lastReturn.has_issues ? `${lastReturn.resolved ? 'Apontamento resolvido' : 'Há apontamento pendente'}${lastReturn.alert_level ? ` · ${lastReturn.alert_level}` : ''}` : 'Sem apontamentos pendentes.'}</p>{(lastReturn.return_notes || lastReturn.repair_notes) && <p className="mt-3 whitespace-pre-wrap text-slate-200">{lastReturn.return_notes || lastReturn.repair_notes}</p>}</div></div></section>}
             {!blocked && pickup && <CheckoutForm vehicleId={id} token={token} reservationId={pickup.id} scheduledDriver={pickup.driver?.name || ''} lastOdometer={Number(vehicle.odometer ?? 0)} lastFuel={lastReturn?.fuel_level || ''} showOdometer={vehicle.qr_display_settings?.odometer !== false} showFuel={vehicle.qr_display_settings?.fuel !== false} />}
         </div></main>
     );
