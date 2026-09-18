@@ -14,11 +14,14 @@ test('recovers the authenticated profile through its RLS-protected direct query'
     assert.match(source, /setProfileLoadFailed\(false\)/);
 });
 
-test('defers profile loading until the Supabase auth callback has released its lock', async () => {
+test('defers and serializes profile loading until the Supabase auth callback has released its lock', async () => {
     const source = await readFile(contextPath, 'utf8');
 
     assert.match(source, /\(_event, session\) =>/);
-    assert.match(source, /scheduledProfileRefresh = setTimeout\([\s\S]*?void fetchProfile\(session\.user\)[\s\S]*?, 0\)/);
+    assert.match(source, /const scheduleProfileRefresh = \(authenticatedUser: User, delay = 0\)/);
+    assert.match(source, /if \(scheduledProfileRefresh\) clearTimeout\(scheduledProfileRefresh\)/);
+    assert.match(source, /scheduleProfileRefresh\(session\.user\)/);
+    assert.match(source, /error instanceof DOMException && error\.name === 'AbortError'/);
 });
 
 test('keeps a single settings destination in the desktop sidebar', async () => {
@@ -32,7 +35,8 @@ test('uses the exchanged recovery session and times out instead of leaving reset
     const source = await readFile(resetPasswordPath, 'utf8');
 
     assert.match(source, /RECOVERY_VALIDATION_TIMEOUT_MS = 10_000/);
-    assert.match(source, /withTimeout\(supabase\.auth\.exchangeCodeForSession\(code\)\)/);
+    assert.match(source, /withRecoveryTimeout\(supabase\.auth\.exchangeCodeForSession\(code\)\)/);
+    assert.match(source, /withRecoveryTimeout\(supabase\.auth\.updateUser\(\{ password \}\)\)/);
     assert.match(source, /!data\.session/);
     assert.match(source, /setRecoveryState\("invalid"\)/);
 });

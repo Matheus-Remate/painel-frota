@@ -70,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setProfile(null);
             setProfileLoadFailed(true);
         } catch (err) {
+            if (err instanceof DOMException && err.name === 'AbortError') {
+                throw err;
+            }
             console.error("Exception in fetchProfile:", err);
             setProfile(null);
             setProfileLoadFailed(true);
@@ -96,6 +99,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let mounted = true;
         let scheduledProfileRefresh: ReturnType<typeof setTimeout> | null = null;
 
+        const scheduleProfileRefresh = (authenticatedUser: User, delay = 0) => {
+            if (scheduledProfileRefresh) clearTimeout(scheduledProfileRefresh);
+
+            scheduledProfileRefresh = setTimeout(() => {
+                if (!mounted) return;
+
+                void fetchProfile(authenticatedUser).catch((error: unknown) => {
+                    // A troca inicial de sessão pode abortar uma requisição em
+                    // trânsito. Refaça apenas uma vez, fora do callback Auth.
+                    if (mounted && error instanceof DOMException && error.name === 'AbortError') {
+                        scheduleProfileRefresh(authenticatedUser, 250);
+                    }
+                });
+            }, delay);
+        };
+
         const initAuth = async () => {
             try {
                 // Check session first
@@ -103,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (mounted && session?.user) {
                     setUser(session.user);
-                    await fetchProfile(session.user);
+                    scheduleProfileRefresh(session.user);
                 }
             } catch (err: any) {
                 // Ignore AbortError in logs as it's common during HMR/Strict Mode
@@ -119,18 +138,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             (_event, session) => {
                 if (!mounted) return;
 
-                if (scheduledProfileRefresh) {
-                    clearTimeout(scheduledProfileRefresh);
-                }
-
                 if (session?.user) {
                     setUser(session.user);
                     // O cliente Supabase mantém um lock durante este callback.
                     // Não faça chamadas assíncronas ao próprio cliente aqui: adie
                     // a busca até o callback encerrar para evitar sessão travada.
-                    scheduledProfileRefresh = setTimeout(() => {
-                        if (mounted) void fetchProfile(session.user);
-                    }, 0);
+                    scheduleProfileRefresh(session.user);
                 } else {
                     setUser(null);
                     setProfile(null);

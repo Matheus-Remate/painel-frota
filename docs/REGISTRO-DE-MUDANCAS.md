@@ -58,6 +58,15 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Validação: contratos automatizados do adiamento do callback e da troca de código de recuperação, typecheck, lint, testes, build e nova verificação da sessão publicada após implantação.
 - Publicação: pendente da implantação desta correção.
 
+## 2026-09-17 — serialização da recuperação de perfil
+
+- Escopo: serializada a leitura de perfil iniciada pela sessão inicial e pelo evento de Auth; `AbortError` de troca de sessão recebe uma única repetição curta.
+- Impacto operacional: impede que uma segunda consulta cancele a primeira e deixe o perfil autenticado nulo.
+- Dados e migrations: nenhuma alteração de dados ou schema.
+- Backup: não aplicável; mudança exclusiva no cliente.
+- Validação: testes de contrato da serialização, typecheck, lint, testes e build.
+- Publicação: pendente da implantação desta correção.
+
 ## 2026-09-17 — correção do bloqueio de perfil no listener Auth
 
 - Escopo: removida a chamada assíncrona ao Supabase de dentro do callback `onAuthStateChange`; a leitura de perfil agora é agendada após o callback encerrar.

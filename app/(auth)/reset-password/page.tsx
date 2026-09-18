@@ -9,6 +9,22 @@ import { useRouter } from "next/navigation";
 type RecoveryState = "checking" | "ready" | "invalid";
 const RECOVERY_VALIDATION_TIMEOUT_MS = 10_000;
 
+function withRecoveryTimeout<T>(operation: Promise<T>) {
+    return new Promise<T>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Tempo esgotado ao validar o link de recuperação.')), RECOVERY_VALIDATION_TIMEOUT_MS);
+        operation.then(
+            value => {
+                clearTimeout(timeout);
+                resolve(value);
+            },
+            reason => {
+                clearTimeout(timeout);
+                reject(reason);
+            }
+        );
+    });
+}
+
 export default function ResetPasswordPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
@@ -21,20 +37,6 @@ export default function ResetPasswordPage() {
 
     useEffect(() => {
         let mounted = true;
-
-        const withTimeout = <T,>(operation: Promise<T>) => new Promise<T>((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Tempo esgotado ao validar o link de recuperação.')), RECOVERY_VALIDATION_TIMEOUT_MS);
-            operation.then(
-                value => {
-                    clearTimeout(timeout);
-                    resolve(value);
-                },
-                reason => {
-                    clearTimeout(timeout);
-                    reject(reason);
-                }
-            );
-        });
 
         const markReady = () => {
             if (mounted) setRecoveryState("ready");
@@ -54,7 +56,7 @@ export default function ResetPasswordPage() {
 
             try {
                 if (code) {
-                    const { data, error: exchangeError } = await withTimeout(supabase.auth.exchangeCodeForSession(code));
+                    const { data, error: exchangeError } = await withRecoveryTimeout(supabase.auth.exchangeCodeForSession(code));
                     if (exchangeError || !data.session) {
                         throw exchangeError || new Error('O link não criou uma sessão de recuperação.');
                     }
@@ -64,7 +66,7 @@ export default function ResetPasswordPage() {
                     return;
                 }
 
-                const { data: { session } } = await withTimeout(supabase.auth.getSession());
+                const { data: { session } } = await withRecoveryTimeout(supabase.auth.getSession());
                 if (!mounted) return;
 
                 setRecoveryState(session ? "ready" : "invalid");
@@ -108,7 +110,7 @@ export default function ResetPasswordPage() {
                 return;
             }
 
-            const { error: updateError } = await supabase.auth.updateUser({ password });
+            const { error: updateError } = await withRecoveryTimeout(supabase.auth.updateUser({ password }));
             if (updateError) {
                 setError(updateError.message);
                 return;
@@ -121,7 +123,7 @@ export default function ResetPasswordPage() {
             }, 3000);
         } catch (e) {
             console.error(e);
-            setError("Erro ao conectar com o servidor");
+            setError("Não foi possível atualizar a senha. O link pode ter expirado; solicite um novo link de recuperação.");
         } finally {
             setLoading(false);
         }
