@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import GanttChart from "@/components/dashboard/gantt-chart";
-import ReservationsList from "@/components/schedule/ReservationsList";
 import { getReservations } from "@/lib/services/schedule";
 import { getVehicles } from "@/lib/services/dashboard";
 
@@ -44,7 +43,6 @@ export default async function SchedulePage() {
 
             <GanttChart reservations={reservations} vehicles={vehicles} />
 
-            <ReservationsList reservations={reservations} />
         </div>
     );
 }

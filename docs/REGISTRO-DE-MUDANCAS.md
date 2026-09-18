@@ -114,3 +114,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável; interface e leituras.
 - Validação: typecheck, lint e testes de contrato antes da publicação.
 - Publicação: commit `02ba275`, branch `main`, enviado a `origin/main` para implantação automática.
+
+## 2026-09-17 — reservas filtráveis e agenda separada
+
+- Escopo: separadas as páginas Reservas e Agenda; adicionada busca/filtros à listagem e resumo de reservas na Home entre Aprovações e QR Code.
+- Dados: detalhe de reserva exibe o gestor responsável pela alocação, além dos demais dados já apresentados.
+- Dados e migrations: nenhuma alteração de schema ou dados; gestor é lido da aprovação vinculada por veículo e período.
+- Backup: não aplicável.
+- Validação: typecheck, lint e testes antes da publicação.
+- Publicação: pendente das validações e envio a `main`.

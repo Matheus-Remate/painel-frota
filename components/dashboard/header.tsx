@@ -14,7 +14,8 @@ interface HeaderProps { user: AuthUser; initialNotifications: FleetNotification[
 const items = [
     { href: '/dashboard', label: 'Centro de Comando', icon: Home, roles: ['admin', 'gestor'] },
     { href: '/dashboard/vehicles', label: 'Frota & Pátio', icon: CarFront, roles: ['admin', 'gestor'] },
-    { href: '/dashboard/schedule', label: 'Reservas & Agenda', icon: CalendarDays, roles: ['admin', 'gestor'] },
+    { href: '/dashboard/reservations', label: 'Reservas', icon: CalendarDays, roles: ['admin', 'gestor'] },
+    { href: '/dashboard/schedule', label: 'Agenda', icon: CalendarDays, roles: ['admin', 'gestor'] },
     { href: '/dashboard/checkins', label: 'Revisões & Vistorias', icon: CheckCircle2, roles: ['admin', 'gestor'] },
     { href: '/dashboard/occurrences', label: 'Ocorrências', icon: TriangleAlert, roles: ['admin', 'gestor'] },
     { href: '/dashboard/requests', label: 'Minhas Solicitações', icon: ClipboardList, roles: ['admin', 'gestor', 'solicitante'] },
