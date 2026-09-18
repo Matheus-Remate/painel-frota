@@ -64,7 +64,7 @@ Gestor pode criar/editar somente `gestor` e `solicitante`; UI esconde `admin` e 
 
 Já lançadas no baseline: login/reset com URL de produção, RBAC básico, solicitações/aprovações, reservas atômicas, veículos/condutores, QR tokenizado, check-in/devolução, bucket privado, custódia, notificações e conta admin protegida.
 
-No working tree da v1: gestão de usuários por gestor com restrições, QR orientado à reserva, ocultação configurável de dados de QR, compressão de foto, níveis de alerta e decisões auditáveis, lembrete de urgência/reserva, edição de reserva com condutor explícito e documentação v1/v2. A correção auditável de devolução possui formulário no painel e histórico consultável (gestor, data, valores anterior/novo e justificativa). A migration `035` protege alterações de reserva ativa contra alertas impeditivos tanto no gatilho quanto na RPC de edição. Veja `git status` antes de alterar ou commitar.
+A v1 está publicada: gestão de usuários por gestor com restrições, QR orientado à reserva, ocultação configurável de dados de QR, compressão de foto, níveis de alerta e decisões auditáveis, lembrete de urgência/reserva, edição de reserva com condutor explícito e documentação v1/v2. A correção auditável de devolução possui formulário no painel e histórico consultável (gestor, data, valores anterior/novo e justificativa). A migration `035` protege alterações de reserva ativa contra alertas impeditivos tanto no gatilho quanto na RPC de edição.
 
 ## Pendências e problemas conhecidos
 
@@ -104,4 +104,8 @@ Para build local sem secrets reais, é possível definir valores Supabase fictí
 
 ## Próximo passo recomendado
 
-Antes de qualquer publicação: revisar cuidadosamente `034` e `035`, fazer backup, aplicá-las em staging/Supabase na ordem, executar o roteiro E2E por papel e QR, e só então commit/push/deployar o working tree. Depois, priorizar testes de integração SQL e decidir o escopo da V2 de revisão de devolução.
+Executar o roteiro E2E por papel e QR em ambiente de homologação com backup lógico antes de qualquer dado de teste. Depois, priorizar testes de integração SQL e decidir o escopo da V2 de revisão de devolução.
+
+## Registro obrigatório de mudanças
+
+Toda alteração futura deve atualizar `docs/REGISTRO-DE-MUDANCAS.md` no mesmo commit, com: data, escopo, impacto operacional, migrations/alterações de dados, backup realizado ou justificativa para não realizá-lo, validações executadas, commit e estado de publicação. Mudanças com escrita, exclusão ou migração de dados exigem backup lógico recuperável antes da execução; exceções devem ser justificadas no registro.
