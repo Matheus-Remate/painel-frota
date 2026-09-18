@@ -122,4 +122,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma alteração de schema ou dados; gestor é lido da aprovação vinculada por veículo e período.
 - Backup: não aplicável.
 - Validação: typecheck, lint e testes antes da publicação.
-- Publicação: pendente das validações e envio a `main`.
+- Publicação: commit `8ec1d8c`, branch `main`, enviado a `origin/main` para implantação automática.
