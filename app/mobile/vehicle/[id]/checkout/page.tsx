@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, CheckCircle, ClipboardCheck, Fuel, Gauge } fr
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blocksTravel } from '@/lib/domain/alert-level';
+import { vehicleLabel } from '@/lib/presentation/vehicle-label';
 
 export default async function CheckoutPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ token?: string }> }) {
     const { id } = await params;
@@ -27,7 +28,7 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
 
     return (
         <main className="min-h-screen bg-slate-950 p-6 pb-12 text-white"><div className="mx-auto max-w-md space-y-7">
-            <header className="flex items-center gap-4"><Link aria-label="Voltar" href={`/mobile/vehicle/${id}?token=${encodeURIComponent(token)}`} className="p-2 text-slate-400"><ArrowLeft /></Link><div><h1 className="text-xl font-bold">Registrar retirada</h1><p className="text-sm text-slate-400">{vehicle.license_plate} · {vehicle.model?.brand?.name} {vehicle.model?.name}</p></div></header>
+            <header className="flex items-center gap-4"><Link aria-label="Voltar" href={`/mobile/vehicle/${id}?token=${encodeURIComponent(token)}`} className="p-2 text-slate-400"><ArrowLeft /></Link><div><h1 className="text-xl font-bold">Registrar retirada</h1><p className="text-sm text-slate-400">{vehicle.license_plate} · {vehicleLabel(vehicle)}</p></div></header>
             <section className={`rounded-xl border p-4 ${blocked ? 'border-amber-500/30 bg-amber-500/10' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
                 <div className="flex gap-3">{blocked ? <AlertTriangle className="size-5 shrink-0 text-amber-400" /> : <CheckCircle className="size-5 shrink-0 text-emerald-400" />}<div><h2 className="font-semibold">{blocked ? 'Retirada bloqueada' : 'Veículo disponível'}</h2>{blocked ? <><p className="mt-1 text-sm text-slate-200">Para proteger a operação, esta retirada não pode ser registrada agora.</p><ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-amber-100">{blockingReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul><p className="mt-3 text-xs text-slate-300">Se a pendência já foi tratada, peça a um gestor para resolvê-la e atualize esta página.</p></> : <p className="mt-1 text-sm text-slate-300">Confira os dados da última devolução antes de assumir a custódia.</p>}</div></div>
             </section>

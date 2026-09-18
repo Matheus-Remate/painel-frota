@@ -5,10 +5,12 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReservationDetailsButton from './reservation-details-button';
 import { useMemo, useState } from 'react';
+import { CalendarRange, CarFront, CheckCircle2, Clock3, Route } from 'lucide-react';
+import { vehicleLabel } from '@/lib/presentation/vehicle-label';
 
 export default function ReservationsList({ reservations }: { reservations: Reservation[] }) {
     const [query, setQuery] = useState(''); const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('all'); const [showOlder, setShowOlder] = useState(false); const now = new Date();
-    const visibleReservations = useMemo(() => reservations.filter((reservation) => { const text = `${reservation.purpose || ''} ${reservation.driver_name || reservation.driver?.name || ''} ${reservation.vehicle?.license_plate || ''}`.toLocaleLowerCase('pt-BR'); const start = new Date(reservation.start_date); const end = new Date(reservation.end_date); const state = now >= start && now <= end ? 'active' : end < now ? 'completed' : 'upcoming'; const olderThanWeek = end.getTime() < now.getTime() - 7 * 24 * 60 * 60 * 1000; return text.includes(query.toLocaleLowerCase('pt-BR')) && (filter === 'all' || filter === state) && (showOlder || !olderThanWeek); }), [reservations, query, filter, showOlder]);
+    const visibleReservations = useMemo(() => reservations.filter((reservation) => { const text = `${reservation.purpose || ''} ${reservation.driver_name || reservation.driver?.name || ''} ${reservation.vehicle?.license_plate || ''} ${vehicleLabel(reservation.vehicle)}`.toLocaleLowerCase('pt-BR'); const start = new Date(reservation.start_date); const end = new Date(reservation.end_date); const state = now >= start && now <= end ? 'active' : end < now ? 'completed' : 'upcoming'; const olderThanWeek = end.getTime() < now.getTime() - 7 * 24 * 60 * 60 * 1000; return text.includes(query.toLocaleLowerCase('pt-BR')) && (filter === 'all' || filter === state) && (showOlder || !olderThanWeek); }), [reservations, query, filter, showOlder]);
     if (!reservations || reservations.length === 0) {
         return (
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 text-center">
@@ -18,14 +20,12 @@ export default function ReservationsList({ reservations }: { reservations: Reser
     }
 
     return (
-        <div className="bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700/50 sm:rounded-xl overflow-hidden mt-8 -mx-4 sm:mx-0">
-            <div className="p-4 sm:p-6 border-b border-slate-700/50 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-semibold text-white">Listagem de Reservas</h2><p className="text-sm text-slate-400">Clique em detalhes para abrir a alocação completa.</p></div><span className="rounded-full bg-slate-900 px-3 py-1 text-xs text-slate-300">{visibleReservations.length} reservas</span></div>
-                <div className="flex flex-col gap-3 sm:flex-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar evento, condutor ou placa" className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" /><div className="flex flex-wrap gap-2">{[['all','Todas'],['active','Em uso'],['upcoming','Próximas'],['completed','Concluídas']].map(([value,label]) => <button key={value} onClick={() => setFilter(value as any)} className={`rounded-lg px-3 py-2 text-xs ${filter === value ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-700'}`}>{label}</button>)}<button onClick={() => setShowOlder(value => !value)} className={`rounded-lg px-3 py-2 text-xs ${showOlder ? 'bg-amber-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-700'}`}>{showOlder ? 'Ocultar anteriores' : 'Exibir eventos anteriores'}</button></div></div>
-            </div>
+        <div className="ops-panel overflow-hidden">
+            <div className="border-b border-[#26344d] p-4 sm:p-5"><div className="grid gap-3 sm:grid-cols-3"><div className="ops-card flex items-center gap-3 p-3"><Route className="size-4 text-sky-300" /><div><p className="ops-label">Em uso</p><p className="text-lg font-bold text-white">{reservations.filter(r => now >= new Date(r.start_date) && now <= new Date(r.end_date)).length}</p></div></div><div className="ops-card flex items-center gap-3 p-3"><Clock3 className="size-4 text-amber-300" /><div><p className="ops-label">Próximas</p><p className="text-lg font-bold text-white">{reservations.filter(r => new Date(r.start_date) > now).length}</p></div></div><div className="ops-card flex items-center gap-3 p-3"><CheckCircle2 className="size-4 text-emerald-300" /><div><p className="ops-label">Concluídas</p><p className="text-lg font-bold text-white">{reservations.filter(r => new Date(r.end_date) < now).length}</p></div></div></div></div>
+            <div className="space-y-4 border-b border-[#26344d] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2"><span className="ops-icon ops-icon-red"><CalendarRange className="size-4" /></span><div><h2 className="ops-heading">Reservas e alocações</h2><p className="ops-subtitle">Clique em uma reserva para ver os dados operacionais.</p></div></div><span className="ops-plate">{visibleReservations.length} RESERVAS</span></div><div className="flex flex-col gap-3 sm:flex-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar evento, condutor, placa ou apelido" className="flex-1 rounded-lg border border-[#334460] bg-[#0b111c] px-3 py-2.5 text-sm text-white outline-none focus:border-sky-400" /><div className="flex flex-wrap gap-2">{[['all','Todas'],['active','Em uso'],['upcoming','Próximas'],['completed','Concluídas']].map(([value,label]) => <button key={value} onClick={() => setFilter(value as any)} className={`rounded-md border px-3 py-2 text-xs font-semibold ${filter === value ? 'border-red-500 bg-[#990000] text-white' : 'border-[#334460] bg-[#141e2e] text-slate-300 hover:bg-[#1e2b3e]'}`}>{label}</button>)}<button onClick={() => setShowOlder(value => !value)} className={`rounded-md border px-3 py-2 text-xs font-semibold ${showOlder ? 'border-amber-500 bg-amber-950 text-amber-100' : 'border-[#334460] bg-[#141e2e] text-slate-300 hover:bg-[#1e2b3e]'}`}>{showOlder ? 'Ocultar anteriores' : 'Exibir anteriores'}</button></div></div></div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-400">
-                    <thead className="bg-slate-900/50 text-slate-200 uppercase text-xs font-medium">
+                    <thead className="bg-[#0b111c] text-slate-300 uppercase text-[11px] font-medium">
                         <tr>
                             <th className="px-6 py-4">Veículo</th>
                             <th className="px-6 py-4">Evento / Motivo</th>
@@ -35,7 +35,7 @@ export default function ReservationsList({ reservations }: { reservations: Reser
                             <th className="px-6 py-4 text-right">Ações</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-700/50">
+                    <tbody className="divide-y divide-[#26344d]">
                         {visibleReservations.map((reservation) => {
                             const startDate = new Date(reservation.start_date);
                             const endDate = new Date(reservation.end_date);
@@ -55,13 +55,10 @@ export default function ReservationsList({ reservations }: { reservations: Reser
                             }
 
                             return (
-                                <tr key={reservation.id} className="hover:bg-slate-800/30 transition-colors">
+                                <tr key={reservation.id} className="transition-colors hover:bg-[#182232]">
                                     <td className="px-6 py-4 font-medium text-white">
                                         <div className="flex flex-col">
-                                            <span>{reservation.vehicle?.model?.name || 'Modelo não ident.'}{reservation.vehicle?.nickname ? ` (${reservation.vehicle.nickname})` : ''}</span>
-                                            <span className="text-xs text-slate-500">
-                                                {reservation.vehicle?.model?.brand?.name} · {reservation.vehicle?.license_plate}
-                                            </span>
+                                            <span>{vehicleLabel(reservation.vehicle)}</span><span className="mt-1 flex items-center gap-1 text-xs text-slate-500"><CarFront className="size-3" />{reservation.vehicle?.license_plate || 'Placa não identificada'}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

@@ -10,6 +10,7 @@ interface StatusCardProps {
 }
 
 import { Car, Route, Wrench, AlertTriangle } from 'lucide-react';
+import { vehicleLabel } from '@/lib/presentation/vehicle-label';
 
 const statusConfig = {
     IN_YARD: {
@@ -89,9 +90,7 @@ export default function StatusCard({ status, count, availableVehicles }: StatusC
                         {availableVehicles.map((v) => (
                             <Link href={`/dashboard/vehicles/${v.id}`} key={v.id} className="flex items-center justify-between p-2 rounded-xl bg-slate-800/50 border border-slate-700/30 hover:bg-slate-700/70">
                                 <div>
-                                    <p className="text-sm font-bold text-white">
-                                        {v.model?.brand?.name || (typeof (v as any)?.brand === 'string' ? (v as any).brand : '') || ''} {v.model?.name || (typeof (v as any)?.model === 'string' ? (v as any).model : '') || ''}
-                                    </p>
+                                    <p className="text-sm font-bold text-white">{vehicleLabel(v)}</p>
                                     <p className="text-[10px] text-slate-400 font-medium">{v.license_plate}</p>
                                 </div>
                                 <div className="w-2 h-2 rounded-full bg-brand shadow-sm shadow-brand/50" />

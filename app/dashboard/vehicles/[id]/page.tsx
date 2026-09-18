@@ -9,6 +9,7 @@ import PrintQrButton from "@/components/vehicles/print-qr-button";
 import VehicleReservationsCard from "@/components/vehicles/vehicle-reservations-card";
 import { getDrivers } from "@/lib/services/dashboard";
 import VehicleActivityHistory from "@/components/vehicles/vehicle-activity-history";
+import { vehicleLabel } from '@/lib/presentation/vehicle-label';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -28,7 +29,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
     const { dataUrl: qrCodeUrl } = await generateVehicleQRCode(vehicle.id, vehicle.license_plate, vehicle.qr_access_token);
     const model = Array.isArray(vehicle.model) ? vehicle.model[0] : vehicle.model;
     const brand = Array.isArray(model?.brand) ? model.brand[0] : model?.brand;
-    const brandAndModel = [brand?.name, model?.name || vehicle.model_name || vehicle.model].filter(Boolean).join(' ') || 'Veículo';
+    const brandAndModel = vehicleLabel(vehicle);
     const drivers = await getDrivers();
     const operationalStatus = vehicle.operational_status || vehicle.status;
 

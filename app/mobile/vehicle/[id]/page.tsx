@@ -3,6 +3,7 @@ import { getActiveCheckout, getPublicReviewHistory, getScheduledPickup, getVehic
 import { AlertTriangle, Car, ClipboardCheck, LogIn, LogOut, UserRound, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { vehicleLabel } from '@/lib/presentation/vehicle-label';
 
 export default async function VehicleMobilePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
     const { id } = await params;
@@ -15,7 +16,7 @@ export default async function VehicleMobilePage({ params, searchParams }: { para
         getActiveCheckout(id, token), getScheduledPickup(id, token), getPublicReviewHistory(id, token),
     ]);
     const inUse = vehicle.status === 'ON_ROUTE';
-    const modelName = [vehicle.model?.brand?.name, vehicle.model?.name].filter(Boolean).join(' ') || 'Veículo';
+    const modelName = vehicleLabel(vehicle);
     const queryToken = encodeURIComponent(token);
     const hubHref = `/mobile/vehicle/${id}?token=${queryToken}`;
     const emergencyMode = query.mode === 'emergency';
