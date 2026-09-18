@@ -113,4 +113,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma migration; o vínculo com solicitação é associado por veículo e período aprovados para manter compatibilidade com reservas já existentes.
 - Backup: não aplicável; interface e leituras.
 - Validação: typecheck, lint e testes de contrato antes da publicação.
-- Publicação: pendente de validação e envio a `main`.
+- Publicação: commit `02ba275`, branch `main`, enviado a `origin/main` para implantação automática.
