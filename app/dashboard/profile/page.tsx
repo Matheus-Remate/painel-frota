@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import { getDriverByUserId } from "@/lib/services/dashboard";
 
 export default function ProfilePage() {
-    const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
+    const { user, profile, refreshProfile, isLoading: authLoading, profileLoadFailed } = useAuth();
     const [loading, setLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -34,6 +34,11 @@ export default function ProfilePage() {
                 <AlertCircle className="w-12 h-12 text-red-500" />
                 <h2 className="text-xl font-bold text-white">Perfil não encontrado</h2>
                 <p className="text-slate-400">Não conseguimos localizar seus dados de perfil no sistema.</p>
+                {profileLoadFailed && (
+                    <p className="max-w-md text-center text-sm text-slate-500">
+                        Sua sessão continua ativa. Tentamos a consulta segura e a leitura direta do seu perfil; se o problema persistir, saia e entre novamente.
+                    </p>
+                )}
                 <button
                     onClick={() => refreshProfile()}
                     className="px-4 py-2 bg-brand text-white rounded-lg"

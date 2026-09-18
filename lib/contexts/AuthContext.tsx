@@ -24,6 +24,7 @@ interface AuthContextType {
     role: UserRole | null;
     signOut: () => Promise<void>;
     refreshProfile: () => Promise<void>;
+    profileLoadFailed: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,34 +33,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [profileLoadFailed, setProfileLoadFailed] = useState(false);
 
     const [supabase] = useState(() => createClient());
 
-    const fetchProfile = useCallback(async () => {
+    const fetchProfile = useCallback(async (authenticatedUser: User) => {
         try {
             const { data, error } = await supabase
                 .rpc('get_my_profile')
                 .maybeSingle();
 
-            if (error) {
-                console.error("Critical: Error in get_my_profile RPC:", JSON.stringify(error, null, 2));
-                setProfile(null);
-            } else if (!data) {
-                console.warn("Warning: get_my_profile returned no data for authenticated user.");
-                setProfile(null);
-            } else {
+            if (data && !error) {
                 const profileData = data as UserProfile;
                 setProfile(profileData);
+                setProfileLoadFailed(false);
+                return;
             }
+
+            // A RPC continua sendo o caminho principal. Esta leitura própria é
+            // um fallback para indisponibilidade transitória do endpoint RPC ou
+            // cache de schema; a RLS limita o resultado ao usuário autenticado.
+            console.warn('get_my_profile indisponível; tentando leitura direta do próprio perfil.', error);
+            const { data: fallbackData, error: fallbackError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', authenticatedUser.id)
+                .maybeSingle();
+
+            if (fallbackData && !fallbackError) {
+                setProfile(fallbackData as UserProfile);
+                setProfileLoadFailed(false);
+                return;
+            }
+
+            console.error('Não foi possível carregar o perfil autenticado.', fallbackError || error);
+            setProfile(null);
+            setProfileLoadFailed(true);
         } catch (err) {
             console.error("Exception in fetchProfile:", err);
             setProfile(null);
+            setProfileLoadFailed(true);
         }
     }, [supabase]);
 
     const refreshProfile = useCallback(async () => {
         if (user) {
-            await fetchProfile();
+            await fetchProfile(user);
         }
     }, [user, fetchProfile]);
 
@@ -69,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } finally {
             setUser(null);
             setProfile(null);
+            setProfileLoadFailed(false);
         }
     }, [supabase]);
 
@@ -82,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (mounted && session?.user) {
                     setUser(session.user);
-                    await fetchProfile();
+                    await fetchProfile(session.user);
                 }
             } catch (err: any) {
                 // Ignore AbortError in logs as it's common during HMR/Strict Mode
@@ -101,10 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 try {
                     if (session?.user) {
                         setUser(session.user);
-                        await fetchProfile();
+                        await fetchProfile(session.user);
                     } else {
                         setUser(null);
                         setProfile(null);
+                        setProfileLoadFailed(false);
                     }
                 } catch (err: any) {
                     if (err?.name !== 'AbortError') {
@@ -138,7 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: profile?.role || null,
         signOut: handleSignOut,
         refreshProfile,
-    }), [user, profile, isLoading, handleSignOut, refreshProfile]);
+        profileLoadFailed,
+    }), [user, profile, isLoading, handleSignOut, refreshProfile, profileLoadFailed]);
 
     return (
         <AuthContext.Provider value={value}>

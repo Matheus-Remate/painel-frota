@@ -68,6 +68,8 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
+- Em 2026-09-17, a leitura de perfil no cliente passou a ter fallback RLS após a RPC `get_my_profile`; isso evita tela de perfil ausente quando a RPC falhar temporariamente. A função e a permissão `authenticated` foram verificadas no Supabase antes da publicação.
+
 - As migrations `034` e `035` foram aplicadas com sucesso no Supabase de produção em 2026-09-17, via SQL Editor. O histórico gerenciado legado do projeto ainda lista somente `001`–`003`, embora o schema já contivesse as bases de `032`/`033`; não use essa listagem isoladamente para inferir o estado real do banco.
 - A v1 ainda precisa de validação E2E real: QR/reserva, divergência, devolução com 5 fotos, cada nível de alerta, reclassificação, reserva próxima e permissões por papel.
 - Migrations v1 são extensas e precisam de revisão SQL/staging antes de produção; não há `psql`/CLI Supabase configurado no workspace para executá-las localmente.
