@@ -11,7 +11,7 @@ export default async function CheckinsPage() {
     // Get profile and checkins in parallel
     const [allCheckins, { data: profile }] = await Promise.all([
         getCheckins(),
-        supabase.from('profiles').select('role').eq('user_id', user?.id).single()
+        supabase.from('profiles').select('role, first_name, last_name').eq('user_id', user?.id).single()
     ]);
 
     return (
@@ -39,7 +39,7 @@ export default async function CheckinsPage() {
                 </Link>
             </div>
 
-            <CheckinsList initialCheckins={allCheckins} userRole={profile?.role || 'solicitante'} />
+            <CheckinsList initialCheckins={allCheckins} userRole={profile?.role || 'solicitante'} managerName={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()} />
         </div>
     );
 }

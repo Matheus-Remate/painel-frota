@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut } from "@/lib/services/auth";
 import { Menu, X, LogOut, User, ChevronDown, Bell } from "lucide-react";
 import type { AuthUser } from "@/lib/services/auth";
 import type { FleetNotification } from '@/lib/services/notifications';
-import { markNotificationsRead } from '@/lib/services/notifications';
+import { getNotifications, markNotificationsRead } from '@/lib/services/notifications';
 
 interface HeaderProps {
     user: AuthUser;
@@ -18,6 +18,14 @@ export default function DashboardHeader({ user, initialNotifications }: HeaderPr
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState(initialNotifications);
+
+    useEffect(() => {
+        if (!['admin', 'gestor'].includes(user.profile?.role || '')) return;
+        const timer = window.setInterval(async () => {
+            try { setNotifications(await getNotifications()); } catch { /* retry on next poll */ }
+        }, 60_000);
+        return () => window.clearInterval(timer);
+    }, [user.profile?.role]);
 
     const initials = user.profile
         ? `${user.profile.first_name?.[0] ?? ''}${user.profile.last_name?.[0] ?? ''}`.toUpperCase() || user.email[0].toUpperCase()

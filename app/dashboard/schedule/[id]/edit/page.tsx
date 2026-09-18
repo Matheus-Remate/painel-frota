@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { updateReservation, getReservationById } from "@/lib/services/schedule";
 import { type Reservation } from "@/lib/services/schedule";
+import { getDrivers } from '@/lib/services/dashboard';
 
 export default function EditReservationPage() {
     const router = useRouter();
@@ -24,6 +25,7 @@ export default function EditReservationPage() {
     const [pageLoading, setPageLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [reservation, setReservation] = useState<Reservation | null>(null);
+    const [drivers, setDrivers] = useState<Array<{ id: string; name: string }>>([]);
 
     useEffect(() => {
         loadData();
@@ -31,7 +33,8 @@ export default function EditReservationPage() {
 
     async function loadData() {
         try {
-            const data = await getReservationById(reservationId);
+            const [data, driverOptions] = await Promise.all([getReservationById(reservationId), getDrivers()]);
+            setDrivers(driverOptions.map(driver => ({ id: driver.id, name: driver.name })));
             if (!data) {
                 setError("Reserva não encontrada");
             } else {
@@ -166,19 +169,12 @@ export default function EditReservationPage() {
                     </div>
                 </div>
 
-                {/* Driver (Read only mostly unless we map drivers table correctly, but request has driver_name too) */}
-                {/* Check database schema: reservations has driver_id usually, but created from request it might be loose or linked. 
-                    In createRequest, we set driver_id to NULL and put driver name in purpose? 
-                    Let's check createRequest implementation again. 
-                    "driver_id: null, purpose: `${request.event_name} - Condutor: ${request.driver_name}`" 
-                    So currently driver name is embedded in purpose for requests converted to reservations.
-                    Wait, `ReservationsList` tried to display `driver.name`. 
-                    If `driver_id` is null, it won't show driver name separately unless parsed from purpose or if I update logic.
-                    
-                    For this Edit form, I'll allow editing the text purpose which contains the driver info currently. 
-                    Or if I want to be cleaner, I should fix the data model later. 
-                    For now, I'll just show the Purpose field which contains everything.
-                */}
+                <label className="block space-y-2 text-sm text-slate-300">Condutor previsto para o QR
+                    <select name="driverId" required defaultValue={reservation.driver_id} className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-white">
+                        <option value="">Selecione um condutor</option>
+                        {drivers.map(driver => <option key={driver.id} value={driver.id}>{driver.name}</option>)}
+                    </select>
+                </label>
 
                 {/* Actions */}
                 <div className="pt-6 flex justify-end gap-3">

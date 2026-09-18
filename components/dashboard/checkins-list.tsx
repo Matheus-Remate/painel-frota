@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Search, Filter, AlertTriangle, CheckCircle, Calendar, User, History, X, Camera, ChevronDown, XCircle, Check, Loader2 } from "lucide-react";
-import { resolveCheckin } from "@/lib/services/dashboard";
+import { correctCheckinData, resolveCheckin, setCheckinAlertLevel } from "@/lib/services/dashboard";
 import { useRouter } from "next/navigation";
+import { requiresReleaseDeclaration } from '@/lib/domain/alert-level';
 
 type Checkin = any; // Ideally import type
 
-export default function CheckinsList({ initialCheckins, userRole }: { initialCheckins: Checkin[], userRole: string }) {
+export default function CheckinsList({ initialCheckins, userRole, managerName }: { initialCheckins: Checkin[], userRole: string, managerName: string }) {
     const [checkins, setCheckins] = useState<Checkin[]>(initialCheckins);
     const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'SOLVED'>('PENDING');
     const [searchTerm, setSearchTerm] = useState('');
@@ -17,6 +18,17 @@ export default function CheckinsList({ initialCheckins, userRole }: { initialChe
     const [checkinToResolve, setCheckinToResolve] = useState<string | null>(null);
     const [resolveNotes, setResolveNotes] = useState('');
     const [isResolving, setIsResolving] = useState(false);
+    const [levelTarget, setLevelTarget] = useState<Checkin | null>(null);
+    const [newLevel, setNewLevel] = useState('MEDIUM');
+    const [levelReason, setLevelReason] = useState('');
+    const [confirmedDeclaration, setConfirmedDeclaration] = useState(false);
+    const [savingLevel, setSavingLevel] = useState(false);
+    const [correctionTarget, setCorrectionTarget] = useState<Checkin | null>(null);
+    const [correctedOdometer, setCorrectedOdometer] = useState(0);
+    const [correctedFuel, setCorrectedFuel] = useState('');
+    const [correctedNotes, setCorrectedNotes] = useState('');
+    const [correctionReason, setCorrectionReason] = useState('');
+    const [savingCorrection, setSavingCorrection] = useState(false);
     const router = useRouter();
 
     // Sync state when props change (after router.refresh finishes)
@@ -54,6 +66,38 @@ export default function CheckinsList({ initialCheckins, userRole }: { initialChe
             alert('Erro ao resolver: ' + result.error);
         }
         setIsResolving(false);
+    }
+
+    async function handleLevelChange() {
+        if (!levelTarget) return;
+        setSavingLevel(true);
+        const result = await setCheckinAlertLevel(levelTarget.id, newLevel, levelReason, confirmedDeclaration);
+        setSavingLevel(false);
+        if (!result.success) { alert(result.error || 'Não foi possível alterar o nível.'); return; }
+        setCheckins(prev => prev.map(item => item.id === levelTarget.id ? { ...item, alert_level: newLevel } : item));
+        setLevelTarget(null);
+        setLevelReason('');
+        setConfirmedDeclaration(false);
+        router.refresh();
+    }
+
+    async function handleCorrection() {
+        if (!correctionTarget) return;
+        setSavingCorrection(true);
+        const result = await correctCheckinData(correctionTarget.id, correctedOdometer, correctedFuel, correctedNotes, correctionReason);
+        setSavingCorrection(false);
+        if (!result.success) { alert(result.error || 'Não foi possível corrigir os dados.'); return; }
+        setCorrectionTarget(null);
+        setCorrectionReason('');
+        router.refresh();
+    }
+
+    function openCorrection(item: Checkin) {
+        setCorrectionTarget(item);
+        setCorrectedOdometer(Number(item.odometer || 0));
+        setCorrectedFuel(item.fuel_level || '');
+        setCorrectedNotes(item.return_notes || '');
+        setCorrectionReason('');
     }
 
     // FILTER LOGIC
@@ -137,6 +181,9 @@ export default function CheckinsList({ initialCheckins, userRole }: { initialChe
                             userRole={userRole}
                             onImageClick={setSelectedImage}
                             onResolveClick={(id) => setCheckinToResolve(id)}
+                            onLevelClick={(item) => { setLevelTarget(item); setNewLevel(item.alert_level || 'HIGH'); }}
+                            onCorrectionClick={openCorrection}
+                            isLatest={checkins.find(item => item.vehicle_id === checkin.vehicle_id)?.id === checkin.id}
                         />
                     ))
                 )}
@@ -160,6 +207,26 @@ export default function CheckinsList({ initialCheckins, userRole }: { initialChe
             )}
 
             {/* RESOLVE MODAL */}
+            {correctionTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"><div className="w-full max-w-xl space-y-4 rounded-xl border border-slate-700 bg-slate-900 p-6 text-white">
+                <h3 className="text-xl font-bold">Corrigir dados da última devolução</h3>
+                <p className="text-sm text-slate-300">{correctionTarget.vehicle?.license_plate}. O valor anterior e a justificativa ficam no histórico de auditoria.</p>
+                <label className="block text-sm">Odômetro (km)<input type="number" min="0" value={correctedOdometer} onChange={event => setCorrectedOdometer(Number(event.target.value))} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 p-3" /></label>
+                <label className="block text-sm">Combustível<select value={correctedFuel} onChange={event => setCorrectedFuel(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"><option value="">Selecione</option><option value="EMPTY">Vazio</option><option value="1/4">1/4</option><option value="1/2">1/2</option><option value="3/4">3/4</option><option value="FULL">Cheio</option></select></label>
+                <label className="block text-sm">Observações<textarea value={correctedNotes} onChange={event => setCorrectedNotes(event.target.value)} rows={3} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 p-3" /></label>
+                <label className="block text-sm">Motivo da correção<textarea value={correctionReason} onChange={event => setCorrectionReason(event.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 p-3" /></label>
+                <div className="flex justify-end gap-3"><button type="button" onClick={() => setCorrectionTarget(null)} className="rounded-lg border border-slate-600 px-4 py-2">Cancelar</button><button type="button" onClick={handleCorrection} disabled={savingCorrection || !correctedFuel || correctionReason.trim().length < 10} className="rounded-lg bg-emerald-600 px-4 py-2 disabled:opacity-50">{savingCorrection ? 'Salvando...' : 'Salvar correção'}</button></div>
+            </div></div>}
+            {levelTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"><div className="w-full max-w-xl space-y-4 rounded-xl border border-slate-700 bg-slate-900 p-6 text-white">
+                <h3 className="text-xl font-bold">Classificar pendência</h3>
+                <p className="text-sm text-slate-300">{levelTarget.vehicle?.license_plate} · {levelTarget.return_notes || 'Pendência registrada na devolução'}</p>
+                <select value={newLevel} onChange={(event) => { setNewLevel(event.target.value); setConfirmedDeclaration(false); }} className="w-full rounded-lg border border-slate-700 bg-slate-950 p-3">
+                    <option value="URGENT">Urgente — não pode rodar</option><option value="HIGH">Alto — não pode viajar</option>
+                    <option value="MEDIUM">Médio — pode viajar com atenção</option><option value="LOW">Baixo — pode viajar, com pendência registrada</option>
+                </select>
+                <textarea value={levelReason} onChange={(event) => setLevelReason(event.target.value)} placeholder="Justificativa da classificação (mínimo 10 caracteres)" className="w-full rounded-lg border border-slate-700 bg-slate-950 p-3" rows={3} />
+                {requiresReleaseDeclaration(levelTarget.alert_level || 'HIGH', newLevel) && <label className="block rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"><input type="checkbox" checked={confirmedDeclaration} onChange={(event) => setConfirmedDeclaration(event.target.checked)} className="mr-2" />{managerName} declara que o veículo de placa {levelTarget.vehicle?.license_plate}, mesmo com a pendência {levelTarget.return_notes || 'registrada'}, está apto a rodar. Está ciente de que o veículo poderá sair para viagem e de que esta declaração será considerada na análise de qualquer dano.</label>}
+                <div className="flex justify-end gap-3"><button type="button" onClick={() => setLevelTarget(null)} className="rounded-lg border border-slate-600 px-4 py-2">Cancelar</button><button type="button" onClick={handleLevelChange} disabled={savingLevel || levelReason.trim().length < 10 || (requiresReleaseDeclaration(levelTarget.alert_level || 'HIGH', newLevel) && !confirmedDeclaration)} className="rounded-lg bg-amber-600 px-4 py-2 disabled:opacity-50">{savingLevel ? 'Salvando...' : 'Registrar decisão'}</button></div>
+            </div></div>}
             {checkinToResolve && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
                     <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl p-8 w-full max-w-4xl space-y-6 relative animate-in zoom-in-95 duration-200">
@@ -229,12 +296,18 @@ function CheckinCard({
     checkin,
     userRole,
     onImageClick,
-    onResolveClick
+    onResolveClick,
+    onLevelClick,
+    onCorrectionClick,
+    isLatest
 }: {
     checkin: any,
     userRole: string,
     onImageClick: (url: string) => void,
     onResolveClick: (id: string) => void
+    onLevelClick: (checkin: any) => void
+    onCorrectionClick: (checkin: any) => void
+    isLatest: boolean
 }) {
     const isAlert = checkin.has_issues && !checkin.resolved;
     const isResolved = checkin.resolved;
@@ -263,6 +336,7 @@ function CheckinCard({
                             {checkin.vehicle?.license_plate || '---'}
                         </span>
                         {isAlert && <span className="text-[10px] font-bold bg-amber-500 text-amber-950 px-2 py-0.5 rounded uppercase">Alerta</span>}
+                        {isAlert && <span className="text-[10px] font-bold rounded border border-amber-500/40 px-2 py-0.5 text-amber-300">{checkin.alert_level || 'HIGH'}</span>}
                         {isResolved && <span className="text-[10px] font-bold bg-emerald-500 text-emerald-950 px-2 py-0.5 rounded uppercase">Resolvido</span>}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
@@ -279,8 +353,10 @@ function CheckinCard({
 
                 <div className="flex items-center gap-3 self-end md:self-start">
                     {/* RESOLVE BUTTON (GREEN) */}
+                    {isLatest && (userRole === 'admin' || userRole === 'gestor') && <button onClick={() => onCorrectionClick(checkin)} className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300">Corrigir dados QR</button>}
                     {canResolve && (
                         <div className="scale-90 origin-right">
+                            <button onClick={() => onLevelClick(checkin)} className="mr-2 rounded-lg border border-amber-500/30 px-3 py-1.5 text-sm text-amber-300">Classificar</button>
                             <button
                                 onClick={() => onResolveClick(checkin.id)}
                                 className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg transition-colors text-sm font-medium"
@@ -335,6 +411,22 @@ function CheckinCard({
                     <p className="text-xs text-emerald-400 font-bold mb-1 uppercase">Resolução:</p>
                     <p className="text-sm text-slate-300">{checkin.resolution_notes}</p>
                 </div>
+            )}
+
+            {checkin.corrections?.length > 0 && (
+                <details className="mt-4 rounded-lg border border-sky-500/20 bg-sky-950/10 p-3 text-sm text-slate-200">
+                    <summary className="cursor-pointer font-medium text-sky-200">Histórico de correções auditáveis ({checkin.corrections.length})</summary>
+                    <div className="mt-3 space-y-3 border-t border-sky-500/15 pt-3">
+                        {checkin.corrections.map((correction: any) => (
+                            <div key={correction.id} className="space-y-1 rounded-md bg-slate-950/40 p-3 text-xs">
+                                <p><span className="text-slate-400">Registrada por:</span> {correction.manager_name} em {new Date(correction.created_at).toLocaleString('pt-BR')}</p>
+                                <p><span className="text-slate-400">Odômetro:</span> {correction.previous_odometer} km → {correction.corrected_odometer} km · <span className="text-slate-400">Combustível:</span> {correction.previous_fuel || 'não informado'} → {correction.corrected_fuel || 'não informado'}</p>
+                                {correction.previous_notes !== correction.corrected_notes && <p><span className="text-slate-400">Observações:</span> {correction.previous_notes || 'sem observações'} → {correction.corrected_notes || 'sem observações'}</p>}
+                                <p><span className="text-slate-400">Justificativa:</span> {correction.reason}</p>
+                            </div>
+                        ))}
+                    </div>
+                </details>
             )}
         </div>
     );

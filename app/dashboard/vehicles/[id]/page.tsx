@@ -47,7 +47,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                                 }`}>
                                 {vehicle.status === 'IN_YARD' && 'Em Pátio'}
                                 {vehicle.status === 'ON_ROUTE' && 'Em Rota'}
-                                {vehicle.status === 'AWAITING_REPAIR' && 'Manutenção'}
+                                {vehicle.status === 'AWAITING_REPAIR' && 'Bloqueado para revisão'}
                             </span>
                         </h1>
                         <p className="text-slate-400 font-mono mt-1 text-lg">

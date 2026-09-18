@@ -121,6 +121,15 @@ export function OccurrenceForm({ vehicles, drivers, types, initialData }: Occurr
             </div>
 
             {/* Driver */}
+            {!initialData && <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Nível de atenção</label>
+                <select name="alertLevel" defaultValue="MEDIUM" className="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2.5 text-white">
+                    <option value="LOW">Baixo — atenção futura</option><option value="MEDIUM">Médio — pode viajar com atenção</option>
+                    <option value="HIGH">Alto — não pode viajar</option><option value="URGENT">Urgente — não pode rodar</option>
+                </select>
+            </div>}
+
+            {/* Driver */}
             <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">Condutor (Opcional)</label>
                 <select

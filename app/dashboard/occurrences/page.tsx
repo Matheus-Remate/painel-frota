@@ -2,9 +2,14 @@ import Link from "next/link";
 import { Plus, AlertTriangle, Calendar, Car, User } from "lucide-react";
 import { getOccurrences } from "@/lib/services/occurrences";
 import OccurrenceActions from "@/components/dashboard/occurrence-actions";
+import { createClient } from '@/lib/supabase/server';
 
 export default async function OccurrencesPage() {
     const occurrences = await getOccurrences();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase.from('profiles').select('first_name, last_name').eq('user_id', user?.id).maybeSingle();
+    const managerName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
 
     return (
         <div className="space-y-6">
@@ -34,12 +39,13 @@ export default async function OccurrencesPage() {
                         {occurrences.map((occ: any) => (
                             <div key={occ.id} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800 transition-colors relative group">
                                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <OccurrenceActions id={occ.id} />
+                                    <OccurrenceActions id={occ.id} plate={occ.vehicle?.license_plate || ''} description={occ.description} level={occ.alert_level || 'MEDIUM'} status={occ.status} managerName={managerName} />
                                 </div>
                                 <div className="flex justify-between items-start mb-4 pr-8">
                                     <div className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded text-xs font-bold border border-amber-500/20">
                                         {occ.type?.name}
                                     </div>
+                                    {occ.status !== 'RESOLVED' && <span className="rounded border border-amber-500/30 px-2 py-1 text-xs text-amber-300">{occ.alert_level || 'MEDIUM'}</span>}
                                     <span className="text-slate-500 text-xs flex items-center gap-1">
                                         <Calendar className="w-3 h-3" />
                                         {new Date(occ.date).toLocaleDateString()}

@@ -248,10 +248,25 @@ export default function EditVehiclePage() {
                             >
                                 <option value="IN_YARD">Em Pátio</option>
                                 <option value="ON_ROUTE">Em Rota</option>
-                                <option value="AWAITING_REPAIR">Em Manutenção</option>
+                                <option value="AWAITING_REPAIR">Bloqueado para revisão</option>
                             </select>
                         </div>
                     </div>
+                </div>
+
+                {/* Documentação */}
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-emerald-400 border-b border-slate-700 pb-2">Dados exibidos no QR</h2>
+                    <p className="text-sm text-slate-400">O gestor pode ocultar dados operacionais. Placa, condutor reservado, horários e bloqueios de segurança permanecem visíveis.</p>
+                    {[
+                        ['fuel', 'Combustível'], ['odometer', 'Odômetro'],
+                        ['observations', 'Observações'], ['pending', 'Pendências'],
+                    ].map(([key, label]) => (
+                        <label key={key} className="flex items-center gap-3 text-sm text-slate-200">
+                            <input type="checkbox" name={`qr_${key}`} defaultChecked={vehicle.qr_display_settings?.[key] !== false} className="size-4 accent-emerald-500" />
+                            {label}
+                        </label>
+                    ))}
                 </div>
 
                 {/* Documentação */}

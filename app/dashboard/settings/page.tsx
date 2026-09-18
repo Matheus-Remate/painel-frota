@@ -34,7 +34,7 @@ export default async function SettingsPage() {
 
         role = profile?.role || 'solicitante';
 
-        if (role === 'admin') {
+        if (role === 'admin' || role === 'gestor') {
             users = await getUsers();
         }
     }

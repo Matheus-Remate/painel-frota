@@ -15,6 +15,20 @@ export function hasAdministrativeAccess(role: unknown) {
     return role === 'admin';
 }
 
+export function canManageUserAccounts(role: unknown) {
+    return role === 'admin' || role === 'gestor';
+}
+
+export function canAssignUserRole(actorRole: unknown, assignedRole: unknown) {
+    return isUserRole(assignedRole) &&
+        (actorRole === 'admin' || (actorRole === 'gestor' && assignedRole !== 'admin'));
+}
+
+export function canManageTargetUser(actorRole: unknown, targetRole: unknown) {
+    return actorRole === 'admin' ||
+        (actorRole === 'gestor' && (targetRole === 'gestor' || targetRole === 'solicitante'));
+}
+
 export function protectedAccountDeletionError(isProtected: boolean) {
     return isProtected ? PROTECTED_ADMIN_ERROR : null;
 }

@@ -90,17 +90,14 @@ export async function updateReservation(id: string, formData: FormData) {
 
     const startDate = formData.get('startDate') as string;
     const endDate = formData.get('endDate') as string;
+    const driverId = String(formData.get('driverId') || '');
+    if (!driverId) return { success: false, error: 'Selecione o condutor.' };
 
-    const updateData = {
-        start_date: startDate,
-        end_date: endDate,
-        purpose: formData.get('purpose') as string,
-    };
-
-    const { error } = await supabase
-        .from('reservations')
-        .update(updateData)
-        .eq('id', id);
+    const { error } = await supabase.rpc('update_reservation_for_pickup', {
+        p_reservation_id: id, p_driver_id: driverId,
+        p_start_date: startDate, p_end_date: endDate,
+        p_purpose: String(formData.get('purpose') || ''),
+    });
 
     if (error) return { success: false, error: error.message };
 

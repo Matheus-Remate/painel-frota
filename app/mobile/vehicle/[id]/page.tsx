@@ -1,12 +1,13 @@
-import { getLastCheckin, getUnresolvedOccurrences, getVehicleDetails } from '@/lib/services/mobile';
+import { getLastCheckin, getScheduledPickup, getUnresolvedOccurrences, getVehicleDetails, hasBlockingReturn } from '@/lib/services/mobile';
 import { AlertTriangle, ArrowLeft, ArrowRight, Car, CheckCircle, Fuel, Gauge } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { blocksTravel } from '@/lib/domain/alert-level';
 
 const STATUS = {
     IN_YARD: ['No pátio', 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'],
     ON_ROUTE: ['Em uso', 'text-blue-400 bg-blue-500/10 border-blue-500/20'],
-    AWAITING_REPAIR: ['Aguardando reparo', 'text-amber-400 bg-amber-500/10 border-amber-500/20'],
+    AWAITING_REPAIR: ['Bloqueado para revisão', 'text-amber-400 bg-amber-500/10 border-amber-500/20'],
     IN_MAINTENANCE: ['Em manutenção', 'text-amber-400 bg-amber-500/10 border-amber-500/20'],
 } as const;
 
@@ -16,10 +17,12 @@ export default async function VehicleMobilePage({ params, searchParams }: { para
     const token = typeof query.token === 'string' ? query.token : '';
     const vehicle = await getVehicleDetails(id, token);
     if (!vehicle) notFound();
-    const [lastReturn, unresolved] = await Promise.all([getLastCheckin(id, token), getUnresolvedOccurrences(id, token)]);
+    const [lastReturn, unresolved, pickup, oldBlockingReturn] = await Promise.all([getLastCheckin(id, token), getUnresolvedOccurrences(id, token), getScheduledPickup(id, token), hasBlockingReturn(id, token)]);
     const status = STATUS[vehicle.status as keyof typeof STATUS] ?? ['Status desconhecido', 'text-slate-300 bg-slate-800 border-slate-700'];
     const tokenQuery = `token=${encodeURIComponent(token)}`;
-    const checkoutBlocked = vehicle.status !== 'IN_YARD' || Boolean(lastReturn?.has_issues) || unresolved.length > 0;
+    const blockingReturn = lastReturn?.has_issues && !lastReturn.resolved && blocksTravel(lastReturn.alert_level || 'HIGH');
+    const blockingOccurrence = unresolved.some((item) => blocksTravel(item.alert_level));
+    const checkoutBlocked = vehicle.status !== 'IN_YARD' || !pickup || Boolean(blockingReturn) || oldBlockingReturn || blockingOccurrence;
 
     return (
         <main className="min-h-screen bg-slate-950 p-6 text-white">
@@ -36,19 +39,20 @@ export default async function VehicleMobilePage({ params, searchParams }: { para
                 )}
 
                 <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                    <h2 className="font-semibold">Condição para o próximo condutor</h2>
+                    <h2 className="font-semibold">Retirada programada e condição do veículo</h2>
+                    {pickup ? <p className="mt-3 text-sm text-slate-300">Condutor previsto: <strong className="text-white">{pickup.driver?.name}</strong><br />Retirada: {new Date(pickup.start_date).toLocaleString('pt-BR')}<br />Devolução: {new Date(pickup.end_date).toLocaleString('pt-BR')}</p> : <p className="mt-3 text-sm text-amber-300">Não há retirada programada para as próximas duas horas.</p>}
                     {lastReturn ? (
                         <div className="mt-4 space-y-3 text-sm text-slate-300">
-                            <p>Última devolução por <strong className="text-white">{lastReturn.driver_name || 'não identificado'}</strong>, em {new Date(lastReturn.checked_in_at).toLocaleString('pt-BR')}.</p>
+                            <p>Dados registrados na última devolução, em {new Date(lastReturn.checked_in_at).toLocaleString('pt-BR')}.</p>
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="rounded-lg bg-slate-950 p-3"><Gauge className="mb-1 size-4 text-emerald-400" /><span className="font-mono">{lastReturn.odometer} km</span></div>
-                                <div className="rounded-lg bg-slate-950 p-3"><Fuel className="mb-1 size-4 text-amber-400" /><span>{lastReturn.fuel_level || 'Não informado'}</span></div>
+                                {vehicle.qr_display_settings?.odometer !== false && <div className="rounded-lg bg-slate-950 p-3"><Gauge className="mb-1 size-4 text-emerald-400" /><span className="font-mono">{lastReturn.odometer} km</span></div>}
+                                {vehicle.qr_display_settings?.fuel !== false && <div className="rounded-lg bg-slate-950 p-3"><Fuel className="mb-1 size-4 text-amber-400" /><span>{lastReturn.fuel_level || 'Não informado'}</span></div>}
                             </div>
-                            {lastReturn.has_issues && <p className="flex gap-2 rounded-lg bg-amber-500/10 p-3 text-amber-300"><AlertTriangle className="size-5 shrink-0" />Há itens marcados para revisão. A retirada permanece bloqueada até liberação do gestor.</p>}
-                            {!!(lastReturn.return_notes || lastReturn.repair_notes) && <p className="rounded-lg border border-slate-800 p-3">Observação: {lastReturn.return_notes || lastReturn.repair_notes}</p>}
+                            {lastReturn.has_issues && !lastReturn.resolved && <p className="flex gap-2 rounded-lg bg-amber-500/10 p-3 text-amber-300"><AlertTriangle className="size-5 shrink-0" />Pendência {lastReturn.alert_level || 'HIGH'}: {blockingReturn ? 'retirada bloqueada até liberação do gestor.' : 'viagem permitida com atenção e ciência da pendência.'}</p>}
+                            {vehicle.qr_display_settings?.observations !== false && !!(lastReturn.return_notes || lastReturn.repair_notes) && <p className="rounded-lg border border-slate-800 p-3">Observação: {lastReturn.return_notes || lastReturn.repair_notes}</p>}
                         </div>
                     ) : <p className="mt-3 text-sm text-slate-400">Ainda não existe devolução registrada para este veículo.</p>}
-                    {unresolved.length > 0 && <p className="mt-3 text-sm text-amber-300">{unresolved.length} ocorrência(s) operacional(is) em aberto.</p>}
+                    {vehicle.qr_display_settings?.pending !== false && unresolved.length > 0 && <p className="mt-3 text-sm text-amber-300">{unresolved.length} ocorrência(s) operacional(is) em aberto.</p>}
                 </section>
 
                 <div className="grid gap-3">

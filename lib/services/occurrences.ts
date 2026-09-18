@@ -40,6 +40,8 @@ export async function createOccurrence(formData: FormData) {
     const description = formData.get('description') as string;
     const cost = parseFloat(formData.get('cost') as string) || 0;
     const observation = formData.get('observation') as string;
+    const alertLevel = String(formData.get('alertLevel') || 'MEDIUM');
+    if (!['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(alertLevel)) return { success: false, error: 'Nível de atenção inválido.' };
 
     const dateStr = formData.get('date') as string;
     const dateQuery = new Date(dateStr).toISOString();
@@ -70,7 +72,8 @@ export async function createOccurrence(formData: FormData) {
         description,
         cost,
         observation,
-        status: 'OPEN'
+        status: 'OPEN',
+        alert_level: alertLevel,
     });
 
     if (error) return { success: false, error: error.message };
@@ -91,6 +94,21 @@ export async function resolveOccurrence(id: string) {
     if (error) return { success: false, error: error.message };
 
     revalidatePath('/dashboard/occurrences');
+    return { success: true };
+}
+
+export async function setOccurrenceAlertLevel(id: string, level: string, reason: string, confirmed: boolean) {
+    await requireManager();
+    if (!['URGENT', 'HIGH', 'MEDIUM', 'LOW'].includes(level) || reason.trim().length < 10) {
+        return { success: false, error: 'Nível ou justificativa inválida.' };
+    }
+    const supabase = await createClient();
+    const { error } = await supabase.rpc('set_occurrence_alert_level', {
+        p_occurrence_id: id, p_level: level, p_reason: reason.trim(), p_confirmed: confirmed,
+    });
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/dashboard/occurrences');
+    revalidatePath('/dashboard/vehicles');
     return { success: true };
 }
 

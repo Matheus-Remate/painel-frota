@@ -52,7 +52,7 @@ async function VehicleList({ query, status }: { query: string; status: string })
                             }`}>
                             {vehicle.status === 'IN_YARD' && 'Em Pátio'}
                             {vehicle.status === 'ON_ROUTE' && 'Em Rota'}
-                            {vehicle.status === 'AWAITING_REPAIR' && 'Aguardando Reparo'}
+                            {vehicle.status === 'AWAITING_REPAIR' && 'Bloqueado para revisão'}
                             {vehicle.status === 'IN_MAINTENANCE' && 'Em Manutenção'}
                         </span>
                     </div>
@@ -168,7 +168,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Pro
                         className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50"
                     />
                 </div>
-                <select name="status" defaultValue={status} className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-slate-300"><option value="">Todos os status</option><option value="IN_YARD">No pátio</option><option value="ON_ROUTE">Em uso</option><option value="AWAITING_REPAIR">Aguardando reparo</option><option value="IN_MAINTENANCE">Em manutenção</option></select>
+                <select name="status" defaultValue={status} className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-slate-300"><option value="">Todos os status</option><option value="IN_YARD">No pátio</option><option value="ON_ROUTE">Em uso</option><option value="AWAITING_REPAIR">Bloqueado para revisão</option><option value="IN_MAINTENANCE">Em manutenção</option></select>
                 <button className="rounded-lg bg-brand px-5 py-2 font-medium text-white">Buscar</button>
             </form>
 

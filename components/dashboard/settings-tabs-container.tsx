@@ -36,11 +36,11 @@ export default function SettingsTabsContainer({ initialData }: SettingsTabsConta
         { id: 'models', label: 'Modelos', icon: <Car className="w-4 h-4" /> },
         { id: 'usage_categories', label: 'Categorias de Uso', icon: <ClipboardList className="w-4 h-4" /> },
         { id: 'occurrence_types', label: 'Tipos de Ocorrência', icon: <AlertCircle className="w-4 h-4" /> },
-        { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" />, adminOnly: true },
+        { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
     ];
 
     const tabs = allTabs.filter(tab => {
-        if (tab.id === 'users') return isAdmin;
+        if (tab.id === 'users') return isGestor;
         return isGestor;
     });
 
@@ -97,8 +97,8 @@ export default function SettingsTabsContainer({ initialData }: SettingsTabsConta
                         setMessage={setMessage}
                     />
                 )}
-                {activeTab === 'users' && isAdmin && (
-                    <UsersTab initialUsers={initialData.users} />
+                {activeTab === 'users' && isGestor && (
+                    <UsersTab initialUsers={initialData.users} currentRole={isAdmin ? 'admin' : 'gestor'} />
                 )}
             </div>
         </div>

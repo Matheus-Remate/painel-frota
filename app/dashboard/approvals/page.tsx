@@ -277,7 +277,7 @@ export default function ApprovalsPage() {
                                     const isRequestedModel = selectedRequest?.model_id === vehicle.model_id;
 
                                     const statusLabel = vehicle.status === 'IN_MAINTENANCE' ? 'Em Manutenção' :
-                                        vehicle.status === 'AWAITING_REPAIR' ? 'Aguardando Manutenção' : null;
+                                        vehicle.status === 'AWAITING_REPAIR' ? 'Bloqueado para revisão' : null;
 
                                     return (
                                         <button

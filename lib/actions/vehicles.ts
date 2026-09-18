@@ -107,6 +107,12 @@ export async function updateVehicle(vehicleId: string, formData: FormData) {
     if (color) updateData.color = color;
     if (fuel_type) updateData.fuel_type = fuel_type;
     if (status) updateData.status = status;
+    updateData.qr_display_settings = {
+        fuel: formData.get('qr_fuel') === 'on',
+        odometer: formData.get('qr_odometer') === 'on',
+        observations: formData.get('qr_observations') === 'on',
+        pending: formData.get('qr_pending') === 'on',
+    };
 
     const { error } = await supabase
         .from('vehicles')

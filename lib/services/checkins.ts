@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { CHECKIN_BUCKET } from '@/lib/services/photos';
 import { revalidatePath } from 'next/cache';
 
-type ChecklistItem = { status: 'OK' | 'REVIEW'; notes: string; photoPath?: string };
+type ChecklistItem = { status: 'OK' | 'REVIEW'; notes: string; severity?: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'; photoPath?: string };
 type Checklist = Record<string, ChecklistItem>;
 
 const ALLOWED_FUEL = new Set(['EMPTY', '1/4', '1/2', '3/4', 'FULL']);
@@ -24,7 +24,10 @@ function parseChecklist(raw: FormDataEntryValue | null): Checklist | null {
             if (candidate.status !== 'OK' && candidate.status !== 'REVIEW') return null;
             const notes = String(candidate.notes ?? '').trim();
             if (candidate.status === 'REVIEW' && notes.length < 3) return null;
-            checklist[key] = { status: candidate.status, notes };
+            const severity = candidate.severity;
+            if (candidate.status === 'REVIEW' && !['URGENT', 'HIGH', 'MEDIUM', 'LOW'].includes(String(severity))) return null;
+            checklist[key] = { status: candidate.status, notes,
+                ...(candidate.status === 'REVIEW' ? { severity: severity as ChecklistItem['severity'] } : {}) };
         }
         return checklist;
     } catch {
@@ -56,6 +59,9 @@ export async function createCheckin(formData: FormData) {
     const photos = Array.from(formData.entries()).filter(
         (entry): entry is [string, File] => entry[0].startsWith('photo_') && entry[1] instanceof File && entry[1].size > 0,
     );
+    if (photos.some(([key]) => !checklist[key.slice('photo_'.length)])) {
+        return { success: false, error: 'Uma foto não corresponde a um item do checklist.' };
+    }
     if (photos.some(([, file]) => !ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_PHOTO_BYTES)) {
         return { success: false, error: 'As fotos devem ser JPEG, PNG, WebP ou HEIC e ter no máximo 5 MB.' };
     }
@@ -64,7 +70,6 @@ export async function createCheckin(formData: FormData) {
     try {
         for (const [key, value] of photos) {
             const itemId = key.slice('photo_'.length);
-            if (!checklist[itemId]) continue;
             const extension = value.name.split('.').pop()?.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'jpg';
             const path = `${vehicleId}/${crypto.randomUUID()}.${extension}`;
             const { error } = await admin.storage.from(CHECKIN_BUCKET).upload(path, value, { contentType: value.type, upsert: false });

@@ -10,20 +10,12 @@ import { signChecklistPhotos, signCheckinPhotos } from '@/lib/services/photos';
 export async function resolveCheckin(id: string, notes: string) {
     const authorized = await requireManager();
     const supabaseAdmin = createAdminClient();
-    const supabase = await createClient();
-    // Get the profile ID for the current user (if any)
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', authorized.id)
-        .single();
-
     const { error } = await supabaseAdmin
         .from('check_ins')
         .update({
             resolved: true,
             resolved_at: new Date().toISOString(),
-            resolved_by: profile?.id,
+            resolved_by: authorized.id,
             resolution_notes: notes
         })
         .eq('id', id);
@@ -36,10 +28,45 @@ export async function resolveCheckin(id: string, notes: string) {
     const { data: checkin } = await supabaseAdmin.from('check_ins').select('vehicle_id').eq('id', id).single();
     if (checkin) {
         const { count } = await supabaseAdmin.from('check_ins').select('id', { count: 'exact', head: true })
-            .eq('vehicle_id', checkin.vehicle_id).eq('has_issues', true).eq('resolved', false);
-        if (!count) await supabaseAdmin.from('vehicles').update({ status: 'IN_YARD' }).eq('id', checkin.vehicle_id).eq('status', 'AWAITING_REPAIR');
+            .eq('vehicle_id', checkin.vehicle_id).eq('has_issues', true).eq('resolved', false)
+            .in('alert_level', ['URGENT', 'HIGH']);
+        const { count: occurrenceCount } = await supabaseAdmin.from('occurrences').select('id', { count: 'exact', head: true })
+            .eq('vehicle_id', checkin.vehicle_id).neq('status', 'RESOLVED').in('alert_level', ['URGENT', 'HIGH']);
+        if (!count && !occurrenceCount) await supabaseAdmin.from('vehicles').update({ status: 'IN_YARD' }).eq('id', checkin.vehicle_id).eq('status', 'AWAITING_REPAIR');
     }
 
+    revalidatePath('/dashboard/checkins');
+    revalidatePath('/dashboard/vehicles');
+    return { success: true };
+}
+
+export async function setCheckinAlertLevel(id: string, level: string, reason: string, confirmed: boolean) {
+    await requireManager();
+    if (!['URGENT', 'HIGH', 'MEDIUM', 'LOW'].includes(level) || reason.trim().length < 10) {
+        return { success: false, error: 'Selecione o nível e descreva a justificativa (mínimo 10 caracteres).' };
+    }
+    const supabase = await createClient();
+    const { error } = await supabase.rpc('set_checkin_alert_level', {
+        p_check_in_id: id, p_level: level, p_reason: reason.trim(),
+        p_declaration: confirmed ? 'CONFIRMO' : '',
+    });
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/dashboard/checkins');
+    revalidatePath('/dashboard/vehicles');
+    return { success: true };
+}
+
+export async function correctCheckinData(id: string, odometer: number, fuel: string, notes: string, reason: string) {
+    await requireManager();
+    if (!Number.isInteger(odometer) || odometer < 0 || !['EMPTY', '1/4', '1/2', '3/4', 'FULL'].includes(fuel) || reason.trim().length < 10) {
+        return { success: false, error: 'Confira odômetro, combustível e justificativa (mínimo 10 caracteres).' };
+    }
+    const supabase = await createClient();
+    const { error } = await supabase.rpc('correct_checkin_data', {
+        p_check_in_id: id, p_odometer: odometer, p_fuel: fuel,
+        p_notes: notes.trim(), p_reason: reason.trim(),
+    });
+    if (error) return { success: false, error: error.message };
     revalidatePath('/dashboard/checkins');
     revalidatePath('/dashboard/vehicles');
     return { success: true };
@@ -165,6 +192,7 @@ export const getDriverByUserId = cache(async (userId: string) => {
 });
 
 export const getCheckins = cache(async () => {
+    await requireManager();
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('check_ins')
@@ -174,6 +202,7 @@ export const getCheckins = cache(async () => {
       driver_id,
       odometer,
       has_issues,
+      alert_level,
       checked_in_at,
       cleanliness_status,
       dash_lights_status,
@@ -187,6 +216,18 @@ export const getCheckins = cache(async () => {
       driver_name,
       return_notes,
       photo_paths,
+      corrections:checkin_data_corrections(
+        id,
+        manager_user_id,
+        previous_odometer,
+        corrected_odometer,
+        previous_fuel,
+        corrected_fuel,
+        previous_notes,
+        corrected_notes,
+        reason,
+        created_at
+      ),
       vehicle:vehicles(
         license_plate,
         model:models(
@@ -199,9 +240,28 @@ export const getCheckins = cache(async () => {
         .order('checked_in_at', { ascending: false });
 
     if (error) throw error;
-    return Promise.all((data || []).map(async (item) => ({
+
+    const checkins = data || [];
+    const managerIds = [...new Set(checkins.flatMap((item: any) =>
+        (item.corrections || []).map((correction: any) => correction.manager_user_id).filter(Boolean),
+    ))];
+    const { data: managers, error: managersError } = managerIds.length
+        ? await supabase.from('profiles').select('user_id, first_name, last_name').in('user_id', managerIds)
+        : { data: [], error: null };
+    if (managersError) throw managersError;
+
+    const managerNames = new Map((managers || []).map((manager) => [
+        manager.user_id,
+        `${manager.first_name || ''} ${manager.last_name || ''}`.trim() || 'Gestor não identificado',
+    ]));
+
+    return Promise.all(checkins.map(async (item: any) => ({
         ...item,
         checklist: await signChecklistPhotos(item.checklist),
         photos: await signCheckinPhotos(item.photo_paths, item.photos),
+        corrections: (item.corrections || []).map((correction: any) => ({
+            ...correction,
+            manager_name: managerNames.get(correction.manager_user_id) || 'Gestor não identificado',
+        })),
     })));
 });

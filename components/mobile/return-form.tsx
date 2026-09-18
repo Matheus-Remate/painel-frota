@@ -4,6 +4,7 @@ import { createCheckin } from "@/lib/services/checkins";
 import { useState } from "react";
 import { Camera, Check, AlertCircle, Gauge, Fuel, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { compressPhoto } from '@/lib/utils/compress-photo';
 
 const CHECKLIST_ITEMS = [
     { id: 'limpeza', label: 'Limpeza Interna' },
@@ -16,18 +17,21 @@ const CHECKLIST_ITEMS = [
 interface ChecklistState {
     [key: string]: {
         status: 'OK' | 'REVIEW';
+        severity?: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW';
         notes?: string;
         photo?: File | null;
     }
 }
 
-export default function ReturnForm({ vehicleId, token, lastOdometer }: { vehicleId: string; token: string; lastOdometer: number }) {
+export default function ReturnForm({ vehicleId, token, lastOdometer, driverName }: { vehicleId: string; token: string; lastOdometer: number; driverName: string }) {
     const [submitting, setSubmitting] = useState(false);
     const [checklist, setChecklist] = useState<ChecklistState>(
         CHECKLIST_ITEMS.reduce((acc, item) => ({ ...acc, [item.id]: { status: 'OK' } }), {})
     );
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
+    const [photoStatus, setPhotoStatus] = useState<Record<string, 'processing' | 'error' | 'ready'>>({});
+    const photoReady = Object.values(photoStatus).every(status => status === 'ready');
 
     const handleStatusChange = (id: string, status: 'OK' | 'REVIEW') => {
         setChecklist(prev => ({
@@ -43,35 +47,44 @@ export default function ReturnForm({ vehicleId, token, lastOdometer }: { vehicle
         }));
     };
 
-    const handlePhotoChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            if (e.target.files[0].size > 5 * 1024 * 1024) {
-                setError('Cada foto deve ter no máximo 5 MB.');
-                e.target.value = '';
-                return;
-            }
+    const handleSeverityChange = (id: string, severity: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW') => {
+        setChecklist(prev => ({ ...prev, [id]: { ...prev[id], severity } }));
+    };
+
+    const handlePhotoChange = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setPhotoStatus(prev => ({ ...prev, [id]: 'processing' }));
+        try {
+            const processed = await compressPhoto(file);
+            setChecklist(prev => ({ ...prev, [id]: { ...prev[id], photo: processed } }));
             setError(null);
-            setChecklist(prev => ({
-                ...prev,
-                [id]: { ...prev[id], photo: e.target.files![0] }
-            }));
+            setPhotoStatus(prev => ({ ...prev, [id]: 'ready' }));
+        } catch (cause) {
+            setPhotoStatus(prev => ({ ...prev, [id]: 'error' }));
+            setError(cause instanceof Error ? cause.message : 'Não foi possível reduzir a foto.');
         }
     };
 
     const [isSuccess, setIsSuccess] = useState(false);
 
     async function handleSubmit(formData: FormData) {
+        if (!photoReady) {
+            setError('Aguarde o processamento da foto ou escolha outra imagem antes de enviar.');
+            return;
+        }
         setSubmitting(true);
         setError(null);
         try {
             // Prepare dynamic checklist data
-            const checklistData: Record<string, { status: 'OK' | 'REVIEW'; notes: string }> = {};
+            const checklistData: Record<string, { status: 'OK' | 'REVIEW'; notes: string; severity?: string }> = {};
 
             // Append files and build JSON
             Object.entries(checklist).forEach(([key, value]) => {
                 checklistData[key] = {
                     status: value.status,
-                    notes: value.notes || ''
+                    notes: value.notes || '',
+                    ...(value.status === 'REVIEW' ? { severity: value.severity || 'MEDIUM' } : {}),
                 };
 
                 // Add specific photos to formData with unique names
@@ -133,6 +146,7 @@ export default function ReturnForm({ vehicleId, token, lastOdometer }: { vehicle
                 <input
                     type="text"
                     name="driverName"
+                    defaultValue={driverName}
                     placeholder="Seu nome completo"
                     required
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-lg text-white placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -239,6 +253,15 @@ export default function ReturnForm({ vehicleId, token, lastOdometer }: { vehicle
                                     required
                                 />
 
+                                <label className="block text-sm text-slate-300">Gravidade observada
+                                    <select value={checklist[item.id].severity || 'MEDIUM'} onChange={(event) => handleSeverityChange(item.id, event.target.value as 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW')} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-white">
+                                        <option value="LOW">Baixo — atenção futura</option>
+                                        <option value="MEDIUM">Médio — pode viajar com atenção</option>
+                                        <option value="HIGH">Alto — não pode viajar</option>
+                                        <option value="URGENT">Urgente — não pode rodar</option>
+                                    </select>
+                                </label>
+
                                 <div className="relative">
                                     <input
                                         type="file"
@@ -273,7 +296,7 @@ export default function ReturnForm({ vehicleId, token, lastOdometer }: { vehicle
             <div className="pt-10 pb-10">
                 <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || !photoReady}
                     className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-lg font-bold py-4 rounded-xl shadow-xl shadow-emerald-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                     {submitting ? (

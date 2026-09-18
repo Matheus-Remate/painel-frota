@@ -7,9 +7,10 @@ import type { UserProfile } from "@/lib/services/auth";
 
 interface UsersTabProps {
     initialUsers: UserProfile[];
+    currentRole: 'admin' | 'gestor';
 }
 
-export function UsersTab({ initialUsers }: UsersTabProps) {
+export function UsersTab({ initialUsers, currentRole }: UsersTabProps) {
     const users = initialUsers;
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -130,7 +131,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                         title={user.is_protected ? 'A conta protegida deve permanecer administradora' : 'Alterar nível de acesso'}
                                         className={`px-3 py-1 rounded-full text-xs font-semibold border-none ${user.is_protected ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'} ${roleColors[user.role]}`}
                                     >
-                                        <option value="admin">Administrador</option>
+                                        {currentRole === 'admin' && <option value="admin">Administrador</option>}
                                         <option value="gestor">Gestor</option>
                                         <option value="solicitante">Solicitante</option>
                                     </select>
@@ -144,7 +145,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                         >
                                             <Pencil className="w-4 h-4" />
                                         </button>
-                                        {!user.is_protected && (
+                                        {currentRole === 'admin' && !user.is_protected && (
                                             <button
                                                 onClick={() => handleDeleteUser(user.id)}
                                                 className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -227,7 +228,7 @@ export function UsersTab({ initialUsers }: UsersTabProps) {
                                 >
                                     <option value="solicitante">Solicitante</option>
                                     <option value="gestor">Gestor</option>
-                                    <option value="admin">Administrador</option>
+                                    {currentRole === 'admin' && <option value="admin">Administrador</option>}
                                 </select>
                             </div>
                             <div className="flex gap-3 pt-6">

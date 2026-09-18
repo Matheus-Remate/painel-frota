@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+    canAssignUserRole,
+    canManageTargetUser,
+    canManageUserAccounts,
     hasAdministrativeAccess,
     isUserRole,
     PROTECTED_ADMIN_ERROR,
@@ -34,6 +37,18 @@ test('allows administrative operations only for the admin role', () => {
     assert.equal(hasAdministrativeAccess('gestor'), false);
     assert.equal(hasAdministrativeAccess('solicitante'), false);
     assert.equal(hasAdministrativeAccess(undefined), false);
+});
+
+test('allows gestores to manage only non-administrative accounts', () => {
+    assert.equal(canManageUserAccounts('gestor'), true);
+    assert.equal(canManageUserAccounts('solicitante'), false);
+    assert.equal(canAssignUserRole('gestor', 'solicitante'), true);
+    assert.equal(canAssignUserRole('gestor', 'gestor'), true);
+    assert.equal(canAssignUserRole('gestor', 'admin'), false);
+    assert.equal(canManageTargetUser('gestor', 'admin'), false);
+    assert.equal(canManageTargetUser('gestor', null), false);
+    assert.equal(canManageTargetUser('gestor', 'solicitante'), true);
+    assert.equal(canAssignUserRole('admin', 'admin'), true);
 });
 
 test('does not restrict role changes for ordinary accounts', () => {

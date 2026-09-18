@@ -27,7 +27,7 @@ const statusConfig = {
         textColor: 'text-blue-500'
     },
     AWAITING_REPAIR: {
-        label: 'Aguardando manutenção',
+        label: 'Bloqueados para revisão',
         icon: AlertTriangle,
         color: 'bg-amber-500',
         gradient: 'from-amber-500 to-orange-500',

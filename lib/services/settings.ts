@@ -5,8 +5,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { cache } from 'react';
 import {
+    canAssignUserRole,
+    canManageTargetUser,
+    canManageUserAccounts,
     hasAdministrativeAccess,
-    isUserRole,
     protectedAccountDeletionError,
     protectedAccountRoleError,
 } from '@/lib/security/user-management';
@@ -179,9 +181,9 @@ export async function deleteModel(id: string) {
     return { success: true };
 }
 
-// ============ USERS (Admin Only) ============
+// ============ USERS ============
 
-async function requireAdmin() {
+async function requireUserManager(adminOnly = false) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -195,32 +197,34 @@ async function requireAdmin() {
         .eq('user_id', user.id)
         .single();
 
-    if (!hasAdministrativeAccess(currentProfile?.role)) {
-        return { authorized: false as const, error: 'Apenas administradores podem gerenciar usuários.' };
+    if (adminOnly ? !hasAdministrativeAccess(currentProfile?.role) : !canManageUserAccounts(currentProfile?.role)) {
+        return { authorized: false as const, error: 'Você não tem permissão para gerenciar usuários.' };
     }
 
-    return { authorized: true as const, user };
+    return { authorized: true as const, user, role: currentProfile!.role };
 }
 
 export const getUsers = cache(async () => {
-    const authorization = await requireAdmin();
+    const authorization = await requireUserManager();
     if (!authorization.authorized) {
         throw new Error(authorization.error);
     }
 
     const adminClient = createAdminClient();
 
-    const { data, error } = await adminClient
+    let query = adminClient
         .from('profiles')
         .select('id, user_id, first_name, last_name, email, role, avatar_url, created_at, is_protected')
         .order('created_at', { ascending: false });
+    if (authorization.role === 'gestor') query = query.in('role', ['gestor', 'solicitante']);
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
 });
 
 export async function createUserAccount(formData: FormData) {
-    const authorization = await requireAdmin();
+    const authorization = await requireUserManager();
     if (!authorization.authorized) {
         return { success: false, error: authorization.error };
     }
@@ -234,7 +238,7 @@ export async function createUserAccount(formData: FormData) {
     const lastName = formData.get('lastName') as string;
     const role = formData.get('role') as string;
 
-    if (!isUserRole(role)) {
+    if (!canAssignUserRole(authorization.role, role)) {
         return { success: false, error: 'Nível de acesso inválido.' };
     }
 
@@ -254,6 +258,9 @@ export async function createUserAccount(formData: FormData) {
     if (createError) {
         // If user already exists in Auth, let's see if we can just sync the profile
         if (createError.message.includes('already been registered')) {
+            if (authorization.role !== 'admin') {
+                return { success: false, error: 'Esta conta já existe. Peça a um administrador para verificar o perfil.' };
+            }
             const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
             if (listError) {
                 return { success: false, error: listError.message };
@@ -306,7 +313,7 @@ export async function createUserAccount(formData: FormData) {
 }
 
 export async function updateUserAccount(userId: string, formData: FormData) {
-    const authorization = await requireAdmin();
+    const authorization = await requireUserManager();
     if (!authorization.authorized) {
         return { success: false, error: authorization.error };
     }
@@ -316,12 +323,16 @@ export async function updateUserAccount(userId: string, formData: FormData) {
     // Get the target profile to find the auth user_id
     const { data: targetProfile, error: profileError } = await adminClient
         .from('profiles')
-        .select('user_id, is_protected')
+        .select('user_id, role, is_protected')
         .eq('id', userId)
         .single();
 
     if (profileError || !targetProfile) {
         return { success: false, error: 'Usuário não encontrado.' };
+    }
+
+    if (!canManageTargetUser(authorization.role, targetProfile.role)) {
+        return { success: false, error: 'Você não pode alterar esta conta.' };
     }
 
     const authUserId = targetProfile.user_id;
@@ -331,7 +342,7 @@ export async function updateUserAccount(userId: string, formData: FormData) {
     const role = formData.get('role') as string;
     const password = formData.get('password') as string;
 
-    if (!isUserRole(role)) {
+    if (!canAssignUserRole(authorization.role, role)) {
         return { success: false, error: 'Nível de acesso inválido.' };
     }
 
@@ -384,12 +395,12 @@ export async function updateUserAccount(userId: string, formData: FormData) {
 }
 
 export async function updateUserRole(userId: string, newRole: string) {
-    const authorization = await requireAdmin();
+    const authorization = await requireUserManager();
     if (!authorization.authorized) {
         return { success: false, error: authorization.error };
     }
 
-    if (!isUserRole(newRole)) {
+    if (!canAssignUserRole(authorization.role, newRole)) {
         return { success: false, error: 'Nível de acesso inválido.' };
     }
 
@@ -398,12 +409,16 @@ export async function updateUserRole(userId: string, newRole: string) {
 
     const { data: targetProfile, error: profileError } = await adminClient
         .from('profiles')
-        .select('is_protected')
+        .select('role, is_protected')
         .eq('id', userId)
         .single();
 
     if (profileError || !targetProfile) {
         return { success: false, error: 'Usuário não encontrado.' };
+    }
+
+    if (!canManageTargetUser(authorization.role, targetProfile.role)) {
+        return { success: false, error: 'Você não pode alterar esta conta.' };
     }
 
     const protectedRoleError = protectedAccountRoleError(targetProfile.is_protected, newRole);
@@ -425,7 +440,7 @@ export async function updateUserRole(userId: string, newRole: string) {
 }
 
 export async function deleteUser(userId: string) {
-    const authorization = await requireAdmin();
+    const authorization = await requireUserManager(true);
     if (!authorization.authorized) {
         return { success: false, error: authorization.error };
     }
