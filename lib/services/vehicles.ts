@@ -14,6 +14,7 @@ export async function createVehicle(formData: FormData) {
     const year = parseInt(formData.get('year') as string);
     const fuelType = formData.get('fuelType') as string;
     const usageCategory = formData.get('usageCategory') as string;
+    const nickname = String(formData.get('nickname') || '').trim() || null;
 
     // Fetch Model to get Brand Name (Legacy/Denormalized requirement)
     const { data: modelRef } = await supabase
@@ -42,6 +43,7 @@ export async function createVehicle(formData: FormData) {
             year,
             fuel_type: fuelType,
             usage_category: usageCategory,
+            nickname,
             status: 'IN_YARD', // Default status
         });
 
@@ -63,6 +65,7 @@ export async function updateVehicle(id: string, formData: FormData) {
     const fuelType = formData.get('fuelType') as string;
     const usageCategory = formData.get('usageCategory') as string;
     const status = formData.get('status') as string;
+    const nickname = String(formData.get('nickname') || '').trim() || null;
 
     const { error } = await supabase
         .from('vehicles')
@@ -73,6 +76,7 @@ export async function updateVehicle(id: string, formData: FormData) {
             fuel_type: fuelType,
             usage_category: usageCategory,
             status: status,
+            nickname,
         })
         .eq('id', id);
 

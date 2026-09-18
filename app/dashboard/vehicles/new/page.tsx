@@ -140,6 +140,10 @@ export default function NewVehiclePage() {
                             <input required name="color" placeholder="Ex: Branco" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
                         </div>
                         <div className="space-y-2">
+                            <label htmlFor="nickname" className="text-sm font-medium text-slate-300">Apelido do veículo</label>
+                            <input name="nickname" placeholder="Ex: Prosom, Remate Web" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
+                        </div>
+                        <div className="space-y-2">
                             <label htmlFor="year" className="text-sm font-medium text-slate-300">Ano Fabricação *</label>
                             <input required type="number" name="year" min="1990" max="2100" placeholder="2024" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
                         </div>

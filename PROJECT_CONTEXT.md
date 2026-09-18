@@ -68,6 +68,8 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
+- A migration `038_audit_alias_and_reservation_permissions.sql` adiciona apelido livre de veículo e trilha imutável de alterações de veículos, reservas, solicitações, movimentos e devoluções. Ela também torna a RPC de edição de reserva compatível com a regra: administrador pode editar; gestor não edita evento encerrado. Aplicação no Supabase de produção pendente.
+
 - Reservas e Agenda têm páginas separadas. A listagem de reservas oferece busca e filtros; Home mostra um resumo entre Aprovações e QR Code. Detalhes de reserva incluem o gestor que aprovou/alocou quando a reserva se originou de solicitação aprovada.
 
 - Agenda e painel inicial exibem o condutor abaixo do evento; ao abrir uma reserva, o modal traz condutor, retirada/devolução, evento, solicitante e preferência. O status visual do veículo considera reserva ativa no período como **Em uso**, preservando bloqueios de manutenção/revisão.

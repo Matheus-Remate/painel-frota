@@ -126,6 +126,7 @@ export const getVehicles = cache(async () => {
         .select(`
             id,
             license_plate,
+            nickname,
             chassis,
             year,
             fuel_type,
@@ -156,6 +157,7 @@ export const getVehicleById = cache(async (id: string) => {
         .select(`
         id,
         license_plate,
+        nickname,
         chassis,
         year,
         fuel_type,

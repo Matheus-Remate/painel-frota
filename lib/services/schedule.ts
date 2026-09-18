@@ -102,11 +102,12 @@ export async function updateReservation(id: string, formData: FormData) {
 
     const { data: reservation, error: reservationError } = await supabase
         .from('reservations')
-        .select('vehicle_id, is_emergency')
+        .select('vehicle_id, is_emergency, end_date')
         .eq('id', id)
         .single();
     if (reservationError || !reservation) return { success: false, error: 'Reserva não encontrada.' };
     if (reservation.is_emergency) return { success: false, error: 'Reservas emergenciais são encerradas pela devolução e não podem ser editadas.' };
+    if (profile.role === 'gestor' && new Date((reservation as any).end_date || 0) < new Date()) return { success: false, error: 'Gestor não pode editar evento já encerrado.' };
 
     const { error } = await supabase.rpc('update_reservation_for_pickup', {
         p_reservation_id: id, p_driver_id: driverId,

@@ -219,6 +219,10 @@ export default function EditVehiclePage() {
                             </select>
                         </div>
                         <div className="space-y-2">
+                            <label htmlFor="nickname" className="text-sm font-medium text-slate-300">Apelido do veículo</label>
+                            <input name="nickname" defaultValue={vehicle.nickname || ''} placeholder="Ex: Prosom, Remate Web" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none" />
+                        </div>
+                        <div className="space-y-2">
                             <label htmlFor="usage_category" className="text-sm font-medium text-slate-300">Tipo de Uso</label>
                             <select
                                 name="usage_category"

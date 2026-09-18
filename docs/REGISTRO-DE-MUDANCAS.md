@@ -123,3 +123,13 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável.
 - Validação: typecheck, lint e testes antes da publicação.
 - Publicação: commit `8ec1d8c`, branch `main`, enviado a `origin/main` para implantação automática.
+
+## 2026-09-18 — auditoria, apelido e regra de edição de reservas
+
+- Escopo: campo livre de apelido para veículos; audit log imutável de veículos, reservas, solicitações, movimentos e devoluções; regra de edição por papel e período.
+- Regras: administrador pode editar reservas ativas; gestor é impedido de editar reserva já encerrada. O banco repete a verificação na RPC.
+- Auditoria: cada inserção, alteração ou exclusão passa a guardar usuário, data, entidade, identificador e estados anterior/novo, acessível somente a administrador.
+- Dados e migrations: `038_audit_alias_and_reservation_permissions.sql`; não remove ou altera registros atuais, apenas adiciona coluna, tabela, índice, políticas, gatilhos e RPC.
+- Backup: não aplicável a registros existentes; migration aditiva.
+- Validação: typecheck, lint e 26 testes passaram.
+- Publicação: migration pendente de aplicação no Supabase; código pendente de envio a `main`.

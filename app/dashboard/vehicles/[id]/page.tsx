@@ -80,6 +80,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                         <p className="text-slate-400 font-mono mt-1 text-lg">
                             {vehicle.license_plate} • {brand?.name || ''}
                         </p>
+                        {vehicle.nickname && <p className="mt-1 text-sm font-medium text-emerald-300">{vehicle.nickname}</p>}
                     </div>
                 </div>
 
