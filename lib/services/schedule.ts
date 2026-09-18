@@ -18,6 +18,7 @@ export type Reservation = {
     driver?: {
         name: string;
     };
+    request?: { event_name: string; model_name: string | null; driver_name: string; pickup_datetime: string; return_datetime: string; requester?: { first_name: string; last_name: string } | null } | null;
 };
 
 export const getReservations = cache(async () => {
@@ -46,7 +47,11 @@ export const getReservations = cache(async () => {
         .order('start_date', { ascending: true });
 
     if (error) throw error;
-    return (data as unknown) as Reservation[];
+    const reservations = (data || []) as unknown as Reservation[];
+    const { data: approvedRequests, error: requestError } = await supabase.from('vehicle_requests').select(`vehicle_id, event_name, model_name, driver_name, pickup_datetime, return_datetime, requester:profiles!requester_id(first_name, last_name)`).eq('status', 'APPROVED');
+    if (requestError) throw requestError;
+    const requestByAllocation = new Map((approvedRequests || []).map((request: any) => [`${request.vehicle_id}:${new Date(request.pickup_datetime).getTime()}:${new Date(request.return_datetime).getTime()}`, request]));
+    return reservations.map((reservation) => ({ ...reservation, request: requestByAllocation.get(`${reservation.vehicle_id}:${new Date(reservation.start_date).getTime()}:${new Date(reservation.end_date).getTime()}`) || null }));
 });
 
 export const getReservationById = cache(async (id: string) => {

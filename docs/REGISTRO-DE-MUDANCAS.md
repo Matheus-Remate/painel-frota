@@ -104,3 +104,13 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável; mudança de interface e leitura.
 - Validação: contrato automatizado do cartão/modal e das proteções de edição, além de typecheck, lint e testes antes da publicação.
 - Publicação: commit `adce423`, branch `main`, enviado a `origin/main` para implantação automática.
+
+## 2026-09-17 — detalhes de agenda, solicitações e apontamentos
+
+- Escopo: a barra de evento na agenda e no painel mostra o condutor abaixo do nome e abre detalhes da reserva; o histórico do veículo abre o detalhe dos apontamentos; Minhas Solicitações recarrega após exclusão.
+- Dados exibidos: condutor, retirada/devolução previstas, evento, solicitante e preferência da solicitação aprovada quando disponível.
+- Status: a visualização de frota considera também uma reserva ativa no horário atual para apresentar **Em uso**, sem substituir bloqueios de manutenção ou revisão.
+- Dados e migrations: nenhuma migration; o vínculo com solicitação é associado por veículo e período aprovados para manter compatibilidade com reservas já existentes.
+- Backup: não aplicável; interface e leituras.
+- Validação: typecheck, lint e testes de contrato antes da publicação.
+- Publicação: pendente de validação e envio a `main`.

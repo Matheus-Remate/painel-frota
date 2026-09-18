@@ -6,7 +6,7 @@ import { deleteRequest } from '@/lib/services/requests';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function RequestActions({ requestId, status }: { requestId: string, status: string }) {
+export default function RequestActions({ requestId, status, onChanged }: { requestId: string, status: string, onChanged?: () => void }) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -18,7 +18,8 @@ export default function RequestActions({ requestId, status }: { requestId: strin
         try {
             const result = await deleteRequest(requestId);
             if (result.success) {
-                // router.refresh(); // Usually handled by server action revalidatePath
+                onChanged?.();
+                router.refresh();
             } else {
                 alert(result.error);
             }

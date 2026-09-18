@@ -163,7 +163,7 @@ export default function RequestsPage() {
                                         <span className="text-xs text-slate-500 mr-2">
                                             {formatDate(request.created_at)}
                                         </span>
-                                        <RequestActions requestId={request.id} status={request.status} />
+                                        <RequestActions requestId={request.id} status={request.status} onChanged={loadRequests} />
                                     </div>
                                 </div>
 

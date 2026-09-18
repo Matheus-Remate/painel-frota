@@ -68,6 +68,10 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
+- Agenda e painel inicial exibem o condutor abaixo do evento; ao abrir uma reserva, o modal traz condutor, retirada/devolução, evento, solicitante e preferência. O status visual do veículo considera reserva ativa no período como **Em uso**, preservando bloqueios de manutenção/revisão.
+
+- Em Minhas Solicitações, ações de editar/excluir permanecem disponíveis somente para pendentes e a lista é recarregada após exclusão. O histórico de atividades do veículo abre os detalhes de cada devolução/apontamento.
+
 - No detalhe do veículo, os eventos e reservas alocados ficam em um cartão próprio. Reservas normais ativas podem ser editadas no modal (evento, período e condutor), usando a RPC atômica já protegida contra conflito e alertas. Registros emergenciais são visíveis, mas não editáveis; são encerrados pela devolução.
 
 - O QR operacional exibe somente **Retirada imediata — somente em urgência** e solicita apenas o nome do condutor. A retirada muda o veículo para **Em uso**, cria uma reserva emergencial auditável com esse nome, registra o movimento, notifica gestores e respeita bloqueios de manutenção e alertas alto/urgente pelas migrations `036` e `037`. A devolução encerra a reserva emergencial.

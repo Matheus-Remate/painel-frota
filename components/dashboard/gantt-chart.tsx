@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Plus, Car } from 'lucide-react';
 import { Reservation } from '@/lib/services/schedule';
+import ReservationDetailsButton from '@/components/schedule/reservation-details-button';
 
 interface GanttChartProps {
     reservations: Reservation[];
@@ -149,20 +150,17 @@ export default function GanttChart({ reservations, vehicles }: GanttChartProps) 
                                             const widthPercent = (durationMs / totalDuration) * 100;
 
                                             return (
-                                                <div
+                                                <ReservationDetailsButton
                                                     key={reservation.id}
-                                                    className="absolute top-2 bottom-2 bg-blue-600 hover:bg-blue-500 border border-blue-400/50 rounded-md shadow-sm cursor-pointer transition-all z-10 overflow-hidden flex flex-col justify-center px-2 group/res"
+                                                    className="absolute top-2 bottom-2 bg-blue-600 hover:bg-blue-500 border border-blue-400/50 rounded-md shadow-sm cursor-pointer transition-all z-10 overflow-hidden px-2 text-left text-xs text-white"
                                                     style={{
                                                         left: `${leftPercent}%`,
                                                         width: `${widthPercent}%`,
                                                         minWidth: '4px' // Ensure visibility for short events
                                                     }}
-                                                    title={`${reservation.purpose} - ${reservation.driver?.name}`}
-                                                >
-                                                    <span className="text-xs text-white font-bold truncate drop-shadow-md leading-tight">
-                                                        {reservation.purpose?.split(' - ')[0] || 'Reserva'}
-                                                    </span>
-                                                </div>
+                                                    timeline
+                                                    reservation={reservation}
+                                                />
                                             );
                                         })
                                     }

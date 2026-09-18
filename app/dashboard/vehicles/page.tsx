@@ -11,7 +11,7 @@ async function VehicleList({ query, status }: { query: string; status: string })
         const model = Array.isArray(vehicle.model) ? vehicle.model[0] : vehicle.model;
         const brand = Array.isArray(model?.brand) ? model.brand[0] : model?.brand;
         const haystack = `${vehicle.license_plate} ${vehicle.chassis} ${model?.name ?? ''} ${brand?.name ?? ''}`.toLocaleLowerCase('pt-BR');
-        return (!normalized || haystack.includes(normalized)) && (!status || vehicle.status === status);
+        return (!normalized || haystack.includes(normalized)) && (!status || (vehicle.operational_status || vehicle.status) === status);
     });
 
     if (filteredVehicles.length === 0) {
@@ -37,7 +37,9 @@ async function VehicleList({ query, status }: { query: string; status: string })
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredVehicles.map((vehicle) => (
+            {filteredVehicles.map((vehicle) => {
+                const operationalStatus = vehicle.operational_status || vehicle.status;
+                return (
                 <div
                     key={vehicle.id}
                     className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-brand/30 transition-all hover:shadow-lg hover:shadow-brand/10"
@@ -46,15 +48,15 @@ async function VehicleList({ query, status }: { query: string; status: string })
                         <div className="p-2 bg-slate-700/50 rounded-lg group-hover:bg-brand/20 group-hover:text-brand-400 transition-colors">
                             <Car className="w-6 h-6" />
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${vehicle.status === 'IN_YARD' ? 'bg-brand/10 text-brand-400 border-brand/20' :
-                            vehicle.status === 'ON_ROUTE' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                vehicle.status === 'AWAITING_REPAIR' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${operationalStatus === 'IN_YARD' ? 'bg-brand/10 text-brand-400 border-brand/20' :
+                            operationalStatus === 'ON_ROUTE' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                operationalStatus === 'AWAITING_REPAIR' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                                     'bg-red-500/10 text-red-400 border-red-500/20'
                             }`}>
-                            {vehicle.status === 'IN_YARD' && 'Em Pátio'}
-                            {vehicle.status === 'ON_ROUTE' && 'Em Rota'}
-                            {vehicle.status === 'AWAITING_REPAIR' && 'Bloqueado para revisão'}
-                            {vehicle.status === 'IN_MAINTENANCE' && 'Em Manutenção'}
+                            {operationalStatus === 'IN_YARD' && 'Em Pátio'}
+                            {operationalStatus === 'ON_ROUTE' && 'Em uso'}
+                            {operationalStatus === 'AWAITING_REPAIR' && 'Bloqueado para revisão'}
+                            {operationalStatus === 'IN_MAINTENANCE' && 'Em Manutenção'}
                         </span>
                     </div>
 
@@ -94,8 +96,8 @@ async function VehicleList({ query, status }: { query: string; status: string })
                             Detalhes
                         </Link>
                     </div>
-                </div>
-            ))}
+                </div>);
+            })}
 
             {/* Add New Card */}
             <Link

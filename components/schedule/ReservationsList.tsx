@@ -2,6 +2,7 @@ import { Reservation } from "@/lib/services/schedule";
 import ReservationActions from "./ReservationActions";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ReservationDetailsButton from './reservation-details-button';
 
 export default function ReservationsList({ reservations }: { reservations: Reservation[] }) {
     if (!reservations || reservations.length === 0) {
@@ -62,7 +63,7 @@ export default function ReservationsList({ reservations }: { reservations: Reser
                                         <span className="line-clamp-2" title={reservation.purpose}>{reservation.purpose?.split(' - ')[0]}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        {reservation.driver?.name || 'Não atribuído'}
+                                        {reservation.driver_name || reservation.driver?.name || 'Não atribuído'}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1 text-xs">
@@ -80,6 +81,7 @@ export default function ReservationsList({ reservations }: { reservations: Reser
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
+                                        <ReservationDetailsButton reservation={reservation} className="mr-2 rounded-lg border border-slate-600 px-2 py-1 text-xs text-slate-300 hover:bg-slate-700" />
                                         <ReservationActions id={reservation.id} status={reservation.status === 'CANCELLED' ? 'CANCELLED' : (isPast ? 'COMPLETED' : 'ACTIVE')} />
                                     </td>
                                 </tr>

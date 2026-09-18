@@ -138,13 +138,15 @@ export const getVehicles = cache(async () => {
                 id,
                 name,
                 brand:brands(id, name)
-            )
+            ),
+            reservations(start_date, end_date, status)
         `)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    const now = Date.now();
+    return (data || []).map((vehicle: any) => ({ ...vehicle, operational_status: ['AWAITING_REPAIR', 'IN_MAINTENANCE'].includes(vehicle.status) ? vehicle.status : (vehicle.status === 'ON_ROUTE' || (vehicle.reservations || []).some((reservation: any) => reservation.status === 'ACTIVE' && new Date(reservation.start_date).getTime() <= now && new Date(reservation.end_date).getTime() >= now) ? 'ON_ROUTE' : vehicle.status) }));
 });
 
 export const getVehicleById = cache(async (id: string) => {
@@ -179,6 +181,9 @@ export const getVehicleById = cache(async (id: string) => {
           dash_lights_status,
           tires_exterior_status,
           driver_name,
+          repair_notes,
+          alert_level,
+          resolved,
           fuel_level,
           return_notes,
           checklist,
@@ -213,6 +218,10 @@ export const getVehicleById = cache(async (id: string) => {
         data.reservations = data.reservations
             .filter((reservation: any) => reservation.status !== 'CANCELLED')
             .sort((a: any, b: any) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+    }
+    if (data) {
+        const now = Date.now();
+        (data as any).operational_status = ['AWAITING_REPAIR', 'IN_MAINTENANCE'].includes(data.status) ? data.status : (data.status === 'ON_ROUTE' || (data.reservations || []).some((reservation: any) => reservation.status === 'ACTIVE' && new Date(reservation.start_date).getTime() <= now && new Date(reservation.end_date).getTime() >= now) ? 'ON_ROUTE' : data.status);
     }
 
     return data;

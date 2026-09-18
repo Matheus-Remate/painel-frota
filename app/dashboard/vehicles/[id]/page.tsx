@@ -8,6 +8,7 @@ import VehicleActions from "@/components/vehicles/VehicleActions";
 import PrintQrButton from "@/components/vehicles/print-qr-button";
 import VehicleReservationsCard from "@/components/vehicles/vehicle-reservations-card";
 import { getDrivers } from "@/lib/services/dashboard";
+import VehicleActivityHistory from "@/components/vehicles/vehicle-activity-history";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -29,6 +30,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
     const brand = Array.isArray(model?.brand) ? model.brand[0] : model?.brand;
     const brandAndModel = [brand?.name, model?.name || vehicle.model_name || vehicle.model].filter(Boolean).join(' ') || 'Veículo';
     const drivers = await getDrivers();
+    const operationalStatus = vehicle.operational_status || vehicle.status;
 
     return (
         <div className="space-y-8">
@@ -66,13 +68,13 @@ export default async function VehicleDetailsPage({ params }: Props) {
                     <div>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                             {model?.name || vehicle.model_name || vehicle.model}
-                            <span className={`text-sm px-3 py-1 rounded-full border ${vehicle.status === 'IN_YARD' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                vehicle.status === 'ON_ROUTE' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                            <span className={`text-sm px-3 py-1 rounded-full border ${operationalStatus === 'IN_YARD' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                operationalStatus === 'ON_ROUTE' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                     'bg-amber-500/10 text-amber-400 border-amber-500/20'
                                 }`}>
-                                {vehicle.status === 'IN_YARD' && 'Em Pátio'}
-                                {vehicle.status === 'ON_ROUTE' && 'Em Rota'}
-                                {vehicle.status === 'AWAITING_REPAIR' && 'Bloqueado para revisão'}
+                                {operationalStatus === 'IN_YARD' && 'Em Pátio'}
+                                {operationalStatus === 'ON_ROUTE' && 'Em uso'}
+                                {operationalStatus === 'AWAITING_REPAIR' && 'Bloqueado para revisão'}
                             </span>
                         </h1>
                         <p className="text-slate-400 font-mono mt-1 text-lg">
@@ -140,42 +142,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                     <VehicleReservationsCard reservations={vehicle.reservations || []} drivers={drivers.map((driver) => ({ id: driver.id, name: driver.name }))} />
 
                     {/* Histórico na página de detalhes */}
-                    <div>
-                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                            <Calendar className="w-5 h-5" />
-                            Histórico de Atividades
-                        </h3>
-
-                        <div className="space-y-4">
-                            {vehicle.check_ins && vehicle.check_ins.length > 0 ? (
-                                vehicle.check_ins.map((checkin: any) => (
-                                    <div key={checkin.id} className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 flex gap-4 hover:bg-slate-800/50 transition-colors">
-                                        <div className={`mt-1 w-2 rounded-full self-stretch ${checkin.has_issues ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <span className="text-slate-200 font-medium">
-                                                    {checkin.has_issues ? 'Devolução com Apontamentos' : 'Devolução Regular'}
-                                                </span>
-                                                <span className="text-slate-500 text-sm">
-                                                    {new Date(checkin.checked_in_at).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                            <div className="text-sm text-slate-400 mb-2">
-                                                Condutor: <span className="text-slate-300">{checkin.driver_name || checkin.driver?.name || 'Não identificado'}</span>
-                                            </div>
-                                            <div className="flex gap-2 text-xs">
-                                                <StatusBadge label="Lataria" status={checkin.tires_exterior_status} />
-                                                <StatusBadge label="Interior" status={checkin.cleanliness_status} />
-                                                <StatusBadge label="Painel" status={checkin.dash_lights_status} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-slate-500 italic">Nenhum registro de histórico encontrado.</p>
-                            )}
-                        </div>
-                    </div>
+                    <VehicleActivityHistory checkins={vehicle.check_ins || []} />
                 </div>
 
                 {/* Coluna Lateral: QR Code e Ações */}
