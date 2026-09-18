@@ -29,7 +29,7 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma migration ou alteração de dados.
 - Backup: não aplicável, pois a alteração é exclusivamente de apresentação e navegação.
 - Validação: `npm run typecheck` e `npm run build` com variáveis Supabase neutras de compilação.
-- Publicação: pendente de commit e envio para `main`.
+- Publicação: commit `582bdc2`, branch `main`; envio para `origin/main` pendente nesta etapa.
 
 ## 2026-09-17 — v1: retirada por reserva, alertas e auditoria
 
@@ -151,3 +151,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável.
 - Validação: typecheck e lint antes da publicação.
 - Publicação: commit `4fc185b`, branch `main`, enviado a `origin/main` para implantação automática.
+
+## 2026-09-18 — central operacional ao ler QR Code
+
+- Escopo: a leitura do QR deixa de abrir diretamente a retirada imediata. A página passa a priorizar os fluxos normais de **Retirada** e **Devolução**, mantendo a retirada imediata em ação menor e expandida somente sob demanda. Também exibe placa, apelido cadastrado e, quando o veículo estiver em uso, o nome do condutor responsável.
+- Impacto operacional: reduz o risco de uma retirada emergencial ser acionada por engano, mantendo o caminho urgente disponível e preservando os bloqueios e a notificação já existentes. A devolução fica disponível apenas enquanto houver uso ativo.
+- Dados e migrations: nenhuma alteração de dados ou schema; são reutilizados o token de QR, o apelido e o último movimento de retirada já existentes.
+- Backup: não aplicável, pois a mudança é de interface e leitura.
+- Validação: contrato automatizado do hub QR, `npm run typecheck`, `npm run lint -- --quiet` e `npm test`.
+- Publicação: pendente de commit e envio para `main`.

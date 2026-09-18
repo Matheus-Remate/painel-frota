@@ -82,9 +82,9 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 - No detalhe do veículo, os eventos e reservas alocados ficam em um cartão próprio. Reservas normais ativas podem ser editadas no modal (evento, período e condutor), usando a RPC atômica já protegida contra conflito e alertas. Registros emergenciais são visíveis, mas não editáveis; são encerrados pela devolução.
 
-- O QR operacional exibe somente **Retirada imediata — somente em urgência** e solicita apenas o nome do condutor. A retirada muda o veículo para **Em uso**, cria uma reserva emergencial auditável com esse nome, registra o movimento, notifica gestores e respeita bloqueios de manutenção e alertas alto/urgente pelas migrations `036` e `037`. A devolução encerra a reserva emergencial.
+- O QR operacional abre uma central do veículo: prioriza **Retirada** e **Devolução**, e mantém **Retirada imediata** como ação discreta, expandida apenas para urgência. Ela solicita somente o nome do condutor, muda o veículo para **Em uso**, cria uma reserva emergencial auditável, registra o movimento, notifica gestores e respeita bloqueios de manutenção e alertas alto/urgente pelas migrations `036` e `037`. A devolução encerra a reserva emergencial.
 
-- A página aberta pelo QR mostra o status de uso e até seis revisões recentes (data e situação), sem nome de condutor, observações, fotos, odômetro ou combustível.
+- A página aberta pelo QR mostra marca/modelo, placa, apelido quando cadastrado, status de uso e, quando ativo, o nome do condutor em uso; também apresenta até seis revisões recentes (data e situação). Não exibe observações, fotos, odômetro ou combustível.
 
 - A impressão do QR na ficha do veículo usa uma etiqueta exclusiva de meia folha A4 (210 × 148,5 mm), com apenas marca/modelo, ano, combustível, chassi, RENAVAM, placa e QR Code. Todo o restante da aplicação é ocultado no modo de impressão.
 
