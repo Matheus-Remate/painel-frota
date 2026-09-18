@@ -150,4 +150,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma alteração de dados ou schema.
 - Backup: não aplicável.
 - Validação: typecheck e lint antes da publicação.
-- Publicação: pendente de envio a `main`.
+- Publicação: commit `4fc185b`, branch `main`, enviado a `origin/main` para implantação automática.
