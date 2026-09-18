@@ -56,7 +56,7 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma alteração de dados ou schema. Confirmados no banco de produção o vínculo Auth/perfil de Tiago Martinez e a leitura sob a RLS do papel `authenticated`.
 - Backup: não aplicável; a alteração é exclusivamente de fluxo no cliente e a consulta de validação foi encerrada com `ROLLBACK`.
 - Validação: contratos automatizados do adiamento do callback e da troca de código de recuperação, typecheck, lint, testes, build e nova verificação da sessão publicada após implantação.
-- Publicação: pendente da implantação desta correção.
+- Publicação: commit `4c15b23`, branch `main`, enviado a `origin/main`; rota de redefinição respondeu HTTP 200 em produção e um novo e-mail de recuperação foi confirmado após a publicação.
 
 ## 2026-09-17 — serialização da recuperação de perfil
 
@@ -65,13 +65,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma alteração de dados ou schema.
 - Backup: não aplicável; mudança exclusiva no cliente.
 - Validação: testes de contrato da serialização, typecheck, lint, testes e build.
-- Publicação: pendente da implantação desta correção.
-
-## 2026-09-17 — correção do bloqueio de perfil no listener Auth
-
-- Escopo: removida a chamada assíncrona ao Supabase de dentro do callback `onAuthStateChange`; a leitura de perfil agora é agendada após o callback encerrar.
-- Impacto operacional: elimina a condição em que o cabeçalho autenticado é exibido, mas o perfil do cliente fica nulo por bloqueio do cliente Supabase.
-- Dados e migrations: nenhuma alteração de dados ou schema. Confirmados no banco de produção o vínculo Auth/perfil de Tiago Martinez e a leitura sob a RLS do papel `authenticated`.
-- Backup: não aplicável; a alteração é exclusivamente de fluxo no cliente e a consulta de validação foi encerrada com `ROLLBACK`.
-- Validação: contrato automatizado do adiamento do callback, typecheck, lint, testes, build e nova verificação da sessão publicada após implantação.
-- Publicação: pendente das validações desta correção.
+- Publicação: commit `4c15b23`, branch `main`, enviado a `origin/main`; produção respondeu HTTP 200 antes do envio do novo link de recuperação.
