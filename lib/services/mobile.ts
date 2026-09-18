@@ -23,6 +23,15 @@ export async function getVehicleDetails(id: string, token: string) {
     return requireQrVehicle(id, token);
 }
 
+export async function getPublicReviewHistory(vehicleId: string, token: string) {
+    if (!(await requireQrVehicle(vehicleId, token))) return [];
+    const { data, error } = await createAdminClient().from('check_ins')
+        .select('checked_in_at, has_issues, resolved, alert_level')
+        .eq('vehicle_id', vehicleId).order('checked_in_at', { ascending: false }).limit(6);
+    if (error) console.error('Falha ao buscar histórico público de revisões:', error.message);
+    return data || [];
+}
+
 export async function getUnresolvedOccurrences(vehicleId: string, token: string) {
     if (!(await requireQrVehicle(vehicleId, token))) return [];
     const admin = createAdminClient();

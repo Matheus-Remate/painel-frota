@@ -83,4 +83,14 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: `036_emergency_qr_checkout.sql` cria RPC atômica de retirada emergencial e registra `vehicle_movements` com marcador `emergency`.
 - Backup: não aplicável a registros existentes; migration adiciona somente função. Definições existentes não são removidas.
 - Validação: typecheck, lint, revisão da função SQL e teste de fluxo após aplicação.
-- Publicação: pendente da migration e implantação.
+- Publicação: código publicado no commit `90a40c8`, branch `main`, enviado a `origin/main`; migration `036` aplicada com sucesso no Supabase de produção.
+
+## 2026-09-17 — reserva e status na retirada imediata por QR
+
+- Escopo: a página do QR passa a mostrar o status de uso do veículo e um histórico enxuto das seis últimas revisões. A retirada imediata passa a criar uma reserva emergencial vinculada ao nome do condutor informado.
+- Impacto operacional: ao confirmar a retirada, o veículo fica **Em uso**, o gestor recebe o alerta existente e a reserva emergencial fica disponível para auditoria. A devolução encerra automaticamente essa reserva, evitando conflito com novas reservas.
+- Privacidade: o QR público exibe somente data e situação da revisão; não expõe condutor, observações, fotos, quilometragem ou combustível.
+- Dados e migrations: `037_emergency_qr_reservation.sql` adiciona `driver_name` e `is_emergency` às reservas, torna opcional o vínculo de condutor somente para a reserva emergencial e atualiza as RPCs atômicas de retirada/devolução.
+- Backup: não aplicável a dados existentes; a migration é aditiva e não remove registros. A alteração de nulidade em `reservations.driver_id` é necessária para não gerar um condutor fictício sem CPF/CNH.
+- Validação: contrato automatizado da reserva emergencial e de seu encerramento na devolução; typecheck, lint e 23 testes passaram. A compilação de produção passou, mas a geração estática local exigiu as variáveis públicas do Supabase, ausentes neste workspace, e por isso não é uma validação local conclusiva de prerender.
+- Publicação: migration `037` aplicada com sucesso no Supabase de produção; implantação desta revisão pendente do envio do commit para `main`.

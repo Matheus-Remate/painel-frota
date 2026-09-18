@@ -68,7 +68,9 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
-- O QR operacional exibe somente **Retirada imediata — somente em urgência** e solicita apenas o nome do condutor. A retirada é registrada como emergência, notifica gestores e ainda respeita bloqueios de manutenção e alertas alto/urgente pela migration `036`.
+- O QR operacional exibe somente **Retirada imediata — somente em urgência** e solicita apenas o nome do condutor. A retirada muda o veículo para **Em uso**, cria uma reserva emergencial auditável com esse nome, registra o movimento, notifica gestores e respeita bloqueios de manutenção e alertas alto/urgente pelas migrations `036` e `037`. A devolução encerra a reserva emergencial.
+
+- A página aberta pelo QR mostra o status de uso e até seis revisões recentes (data e situação), sem nome de condutor, observações, fotos, odômetro ou combustível.
 
 - A impressão do QR na ficha do veículo usa uma etiqueta exclusiva de meia folha A4 (210 × 148,5 mm), com apenas marca/modelo, ano, combustível, chassi, RENAVAM, placa e QR Code. Todo o restante da aplicação é ocultado no modo de impressão.
 
