@@ -7,7 +7,9 @@ import { cache } from 'react';
 export type Reservation = {
     id: string;
     vehicle_id: string;
-    driver_id: string;
+    driver_id: string | null;
+    driver_name?: string | null;
+    is_emergency?: boolean;
     start_date: string;
     end_date: string;
     purpose: string;
@@ -93,6 +95,14 @@ export async function updateReservation(id: string, formData: FormData) {
     const driverId = String(formData.get('driverId') || '');
     if (!driverId) return { success: false, error: 'Selecione o condutor.' };
 
+    const { data: reservation, error: reservationError } = await supabase
+        .from('reservations')
+        .select('vehicle_id, is_emergency')
+        .eq('id', id)
+        .single();
+    if (reservationError || !reservation) return { success: false, error: 'Reserva não encontrada.' };
+    if (reservation.is_emergency) return { success: false, error: 'Reservas emergenciais são encerradas pela devolução e não podem ser editadas.' };
+
     const { error } = await supabase.rpc('update_reservation_for_pickup', {
         p_reservation_id: id, p_driver_id: driverId,
         p_start_date: startDate, p_end_date: endDate,
@@ -102,6 +112,7 @@ export async function updateReservation(id: string, formData: FormData) {
     if (error) return { success: false, error: error.message };
 
     revalidatePath('/dashboard/schedule');
+    revalidatePath(`/dashboard/vehicles/${reservation.vehicle_id}`);
     return { success: true };
 }
 

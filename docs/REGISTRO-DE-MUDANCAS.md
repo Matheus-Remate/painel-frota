@@ -94,3 +94,13 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável a dados existentes; a migration é aditiva e não remove registros. A alteração de nulidade em `reservations.driver_id` é necessária para não gerar um condutor fictício sem CPF/CNH.
 - Validação: contrato automatizado da reserva emergencial e de seu encerramento na devolução; typecheck, lint e 23 testes passaram. A compilação de produção passou, mas a geração estática local exigiu as variáveis públicas do Supabase, ausentes neste workspace, e por isso não é uma validação local conclusiva de prerender.
 - Publicação: migration `037` aplicada com sucesso no Supabase de produção; commit `7e83677`, branch `main`, enviado a `origin/main` para implantação automática.
+
+## 2026-09-17 — agenda alocada no detalhe do veículo
+
+- Escopo: criado cartão de eventos e reservas no detalhe de cada veículo, com o campo de evento/motivo, período, condutor e situação.
+- Impacto operacional: reservas normais ativas podem ser alteradas no próprio detalhe do veículo por modal. A edição continua a usar a RPC atômica existente, portanto conflito de período e alertas impeditivos continuam bloqueando alterações inseguras.
+- Regras: reservas emergenciais são exibidas com identificação própria e não podem ser editadas; elas representam custódia em andamento e são encerradas pela devolução.
+- Dados e migrations: nenhuma migration ou alteração de dados. A tela consulta os campos `driver_name` e `is_emergency` já adicionados pela migration `037`.
+- Backup: não aplicável; mudança de interface e leitura.
+- Validação: contrato automatizado do cartão/modal e das proteções de edição, além de typecheck, lint e testes antes da publicação.
+- Publicação: pendente das validações e envio desta mudança para `main`.

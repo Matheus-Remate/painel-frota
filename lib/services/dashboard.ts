@@ -183,6 +183,17 @@ export const getVehicleById = cache(async (id: string) => {
           return_notes,
           checklist,
           driver:drivers(name)
+        ),
+        reservations (
+          id,
+          driver_id,
+          driver_name,
+          start_date,
+          end_date,
+          purpose,
+          status,
+          is_emergency,
+          driver:drivers(name)
         )
       `)
         .eq('id', id)
@@ -196,6 +207,12 @@ export const getVehicleById = cache(async (id: string) => {
         data.check_ins.sort((a: any, b: any) =>
             new Date(b.checked_in_at).getTime() - new Date(a.checked_in_at).getTime()
         );
+    }
+
+    if (data && data.reservations) {
+        data.reservations = data.reservations
+            .filter((reservation: any) => reservation.status !== 'CANCELLED')
+            .sort((a: any, b: any) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
     }
 
     return data;

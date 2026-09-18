@@ -170,7 +170,7 @@ export default function EditReservationPage() {
                 </div>
 
                 <label className="block space-y-2 text-sm text-slate-300">Condutor previsto para o QR
-                    <select name="driverId" required defaultValue={reservation.driver_id} className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-white">
+                    <select name="driverId" required defaultValue={reservation.driver_id || ''} className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-white">
                         <option value="">Selecione um condutor</option>
                         {drivers.map(driver => <option key={driver.id} value={driver.id}>{driver.name}</option>)}
                     </select>

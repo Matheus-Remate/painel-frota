@@ -68,6 +68,8 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
+- No detalhe do veículo, os eventos e reservas alocados ficam em um cartão próprio. Reservas normais ativas podem ser editadas no modal (evento, período e condutor), usando a RPC atômica já protegida contra conflito e alertas. Registros emergenciais são visíveis, mas não editáveis; são encerrados pela devolução.
+
 - O QR operacional exibe somente **Retirada imediata — somente em urgência** e solicita apenas o nome do condutor. A retirada muda o veículo para **Em uso**, cria uma reserva emergencial auditável com esse nome, registra o movimento, notifica gestores e respeita bloqueios de manutenção e alertas alto/urgente pelas migrations `036` e `037`. A devolução encerra a reserva emergencial.
 
 - A página aberta pelo QR mostra o status de uso e até seis revisões recentes (data e situação), sem nome de condutor, observações, fotos, odômetro ou combustível.

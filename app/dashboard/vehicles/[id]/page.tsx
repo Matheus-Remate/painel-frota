@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import VehicleActions from "@/components/vehicles/VehicleActions";
 import PrintQrButton from "@/components/vehicles/print-qr-button";
+import VehicleReservationsCard from "@/components/vehicles/vehicle-reservations-card";
+import { getDrivers } from "@/lib/services/dashboard";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -26,6 +28,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
     const model = Array.isArray(vehicle.model) ? vehicle.model[0] : vehicle.model;
     const brand = Array.isArray(model?.brand) ? model.brand[0] : model?.brand;
     const brandAndModel = [brand?.name, model?.name || vehicle.model_name || vehicle.model].filter(Boolean).join(' ') || 'Veículo';
+    const drivers = await getDrivers();
 
     return (
         <div className="space-y-8">
@@ -132,6 +135,9 @@ export default async function VehicleDetailsPage({ params }: Props) {
                             </div>
                         </div>
                     </div>
+
+                    {/* Histórico na página de detalhes */}
+                    <VehicleReservationsCard reservations={vehicle.reservations || []} drivers={drivers.map((driver) => ({ id: driver.id, name: driver.name }))} />
 
                     {/* Histórico na página de detalhes */}
                     <div>
