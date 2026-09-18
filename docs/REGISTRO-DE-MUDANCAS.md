@@ -167,5 +167,5 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Impacto operacional: gestor/admin conseguem auditar os apontamentos e fotos que foram registrados na devolução; o condutor recebe contexto operacional antes de assumir o veículo. Fotos permanecem fora do QR público para preservar a privacidade e o acesso controlado ao bucket.
 - Dados e migrations: nenhuma alteração de schema ou de registros. Os caminhos já gravados em `check_ins.photo_paths` são assinados temporariamente no servidor ao abrir a ficha.
 - Backup: não aplicável, pois não há escrita, exclusão ou alteração de dados.
-- Validação: revisão das rotas e estados de UX, contrato automatizado das evidências, `npm run typecheck`, `npm run lint -- --quiet` e `npm test`.
-- Publicação: pendente de commit e envio para `main`.
+- Validação: revisão das rotas e estados de UX, contrato automatizado das evidências, `npm run typecheck`, `npm run lint -- --quiet`, `npm test` (31 testes) e `npm run build` com variáveis neutras de compilação. As rotas públicas de autenticação responderam HTTP 200 e as rotas autenticadas redirecionaram para login quando acessadas sem sessão.
+- Publicação: commit `d54a24c`, branch `main`; envio para `origin/main` pendente nesta etapa.
