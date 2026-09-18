@@ -16,6 +16,7 @@ export default function NewVehiclePage() {
     const [models, setModels] = useState<Model[]>([]);
     const [usageCategories, setUsageCategories] = useState<UsageCategory[]>([]);
     const [selectedBrandId, setSelectedBrandId] = useState<string>('');
+    const [values, setValues] = useState({ modelId: '', license_plate: '', color: '', nickname: '', year: '', fuel_type: 'Diesel', usage_category: '', chassis: '', renavam: '' });
 
     useEffect(() => {
         loadData();
@@ -43,6 +44,7 @@ export default function NewVehiclePage() {
         : [];
 
     const selectedBrand = brands.find(b => b.id === selectedBrandId);
+    function setValue(name: keyof typeof values, value: string) { setValues((current) => ({ ...current, [name]: value })); }
 
     async function handleSubmit(formData: FormData) {
         setLoading(true);
@@ -108,7 +110,7 @@ export default function NewVehiclePage() {
                                 required
                                 disabled={dataLoading}
                                 value={selectedBrandId}
-                                onChange={(e) => setSelectedBrandId(e.target.value)}
+                                onChange={(e) => { setSelectedBrandId(e.target.value); setValue('modelId', ''); }}
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             >
                                 <option value="">Selecione uma marca</option>
@@ -123,6 +125,8 @@ export default function NewVehiclePage() {
                                 name="modelId"
                                 required
                                 disabled={dataLoading || !selectedBrandId}
+                                value={values.modelId}
+                                onChange={(e) => setValue('modelId', e.target.value)}
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none disabled:opacity-50"
                             >
                                 <option value="">{selectedBrandId ? 'Selecione um modelo' : 'Selecione uma marca primeiro'}</option>
@@ -133,23 +137,23 @@ export default function NewVehiclePage() {
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="license_plate" className="text-sm font-medium text-slate-300">Placa *</label>
-                            <input required name="license_plate" placeholder="ABC-1234" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono uppercase" />
+                            <input required name="license_plate" value={values.license_plate} onChange={(e) => setValue('license_plate', e.target.value)} placeholder="ABC-1234" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono uppercase" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="color" className="text-sm font-medium text-slate-300">Cor *</label>
-                            <input required name="color" placeholder="Ex: Branco" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
+                            <input required name="color" value={values.color} onChange={(e) => setValue('color', e.target.value)} placeholder="Ex: Branco" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="nickname" className="text-sm font-medium text-slate-300">Apelido do veículo</label>
-                            <input name="nickname" placeholder="Ex: Prosom, Remate Web" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
+                            <input name="nickname" value={values.nickname} onChange={(e) => setValue('nickname', e.target.value)} placeholder="Ex: Prosom, Remate Web" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="year" className="text-sm font-medium text-slate-300">Ano Fabricação *</label>
-                            <input required type="number" name="year" min="1990" max="2100" placeholder="2024" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
+                            <input required type="number" name="year" value={values.year} onChange={(e) => setValue('year', e.target.value)} min="1990" max="2100" placeholder="2024" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="fuel_type" className="text-sm font-medium text-slate-300">Combustível</label>
-                            <select name="fuel_type" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none">
+                            <select name="fuel_type" value={values.fuel_type} onChange={(e) => setValue('fuel_type', e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none">
                                 <option value="Diesel">Diesel</option>
                                 <option value="Gasolina">Gasolina</option>
                                 <option value="Etanol">Etanol</option>
@@ -163,6 +167,8 @@ export default function NewVehiclePage() {
                                 name="usage_category"
                                 required
                                 disabled={dataLoading}
+                                value={values.usage_category}
+                                onChange={(e) => setValue('usage_category', e.target.value)}
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none"
                             >
                                 <option value="">Selecione o tipo</option>
@@ -180,11 +186,11 @@ export default function NewVehiclePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label htmlFor="chassis" className="text-sm font-medium text-slate-300">Chassi</label>
-                            <input name="chassis" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono uppercase" />
+                            <input name="chassis" value={values.chassis} onChange={(e) => setValue('chassis', e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono uppercase" />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="renavam" className="text-sm font-medium text-slate-300">RENAVAM</label>
-                            <input name="renavam" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono" />
+                            <input name="renavam" value={values.renavam} onChange={(e) => setValue('renavam', e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none font-mono" />
                         </div>
                     </div>
                 </div>

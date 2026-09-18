@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { createModel, updateModel, deleteModel, type Model, type Brand } from "@/lib/services/settings";
 
@@ -11,12 +12,14 @@ interface ModelsTabProps {
 
 export function ModelsTab({ initialModels, initialBrands }: ModelsTabProps) {
     const [models, setModels] = useState<Model[]>(initialModels);
+    const router = useRouter();
     const [brands] = useState<Brand[]>(initialBrands);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingModel, setEditingModel] = useState<Model | null>(null);
     const [filterBrand, setFilterBrand] = useState<string>('');
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    useEffect(() => setModels(initialModels), [initialModels]);
 
     const filteredModels = filterBrand
         ? models.filter(m => m.brand_id === filterBrand)
@@ -33,7 +36,7 @@ export function ModelsTab({ initialModels, initialBrands }: ModelsTabProps) {
                 setMessage({ type: 'success', text: editingModel ? 'Modelo atualizado!' : 'Modelo criado!' });
                 setShowModal(false);
                 setEditingModel(null);
-                window.location.reload();
+                router.refresh();
             } else {
                 setMessage({ type: 'error', text: result.error || 'Erro ao salvar modelo' });
             }
@@ -48,7 +51,7 @@ export function ModelsTab({ initialModels, initialBrands }: ModelsTabProps) {
         const result = await deleteModel(id);
         if (result.success) {
             setMessage({ type: 'success', text: 'Modelo excluído!' });
-            window.location.reload();
+            router.refresh();
         } else {
             setMessage({ type: 'error', text: result.error || 'Erro ao excluir modelo' });
         }

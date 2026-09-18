@@ -9,17 +9,19 @@ import { createClient } from "@/lib/supabase/server";
 import { Settings } from "lucide-react";
 import SettingsTabsContainer from "@/components/dashboard/settings-tabs-container";
 import type { UserProfile } from "@/lib/services/auth";
+import { getDrivers } from "@/lib/services/dashboard";
 
 export default async function SettingsPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     // Server-side fetching with deduplication (via react.cache in services)
-    const [brands, models, occurrenceTypes, usageCategories] = await Promise.all([
+    const [brands, models, occurrenceTypes, usageCategories, drivers] = await Promise.all([
         getBrands(),
         getModels(),
         getOccurrenceTypes(),
-        getUsageCategories()
+        getUsageCategories(),
+        getDrivers(),
     ]);
 
     let users: UserProfile[] = [];
@@ -59,6 +61,7 @@ export default async function SettingsPage() {
                     occurrenceTypes,
                     usageCategories,
                     users,
+                    drivers: drivers || [],
                     role
                 }}
             />

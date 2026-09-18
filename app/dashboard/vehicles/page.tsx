@@ -10,7 +10,7 @@ async function VehicleList({ query, status }: { query: string; status: string })
     const filteredVehicles = vehicles.filter((vehicle) => {
         const model = Array.isArray(vehicle.model) ? vehicle.model[0] : vehicle.model;
         const brand = Array.isArray(model?.brand) ? model.brand[0] : model?.brand;
-        const haystack = `${vehicle.license_plate} ${vehicle.chassis} ${model?.name ?? ''} ${brand?.name ?? ''}`.toLocaleLowerCase('pt-BR');
+        const haystack = `${vehicle.license_plate} ${vehicle.chassis} ${vehicle.nickname ?? ''} ${model?.name ?? ''} ${brand?.name ?? ''}`.toLocaleLowerCase('pt-BR');
         return (!normalized || haystack.includes(normalized)) && (!status || (vehicle.operational_status || vehicle.status) === status);
     });
 
@@ -68,7 +68,7 @@ async function VehicleList({ query, status }: { query: string; status: string })
                             const brandData = modelObj?.brand;
                             const brandName = Array.isArray(brandData) ? brandData[0]?.name : brandData?.name || (vehicle as any).brand || '';
 
-                            return `${brandName} ${modelName}`.trim();
+                            return `${brandName} ${modelName}${vehicle.nickname ? ` (${vehicle.nickname})` : ''}`.trim();
                         })()}
                     </h3>
                     <p className="text-2xl font-mono text-slate-300 mb-4">{vehicle.license_plate}</p>

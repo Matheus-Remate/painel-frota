@@ -58,7 +58,7 @@ export default function ReservationsList({ reservations }: { reservations: Reser
                                 <tr key={reservation.id} className="hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 font-medium text-white">
                                         <div className="flex flex-col">
-                                            <span>{reservation.vehicle?.model?.name || 'Modelo não ident.'}</span>
+                                            <span>{reservation.vehicle?.model?.name || 'Modelo não ident.'}{reservation.vehicle?.nickname ? ` (${reservation.vehicle.nickname})` : ''}</span>
                                             <span className="text-xs text-slate-500">
                                                 {reservation.vehicle?.model?.brand?.name} · {reservation.vehicle?.license_plate}
                                             </span>

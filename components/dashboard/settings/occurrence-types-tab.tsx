@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { createOccurrenceType, deleteOccurrenceType, type OccurrenceType } from "@/lib/services/settings";
 
@@ -10,9 +11,11 @@ interface OccurrenceTypesTabProps {
 
 export function OccurrenceTypesTab({ initialTypes }: OccurrenceTypesTabProps) {
     const [types, setTypes] = useState<OccurrenceType[]>(initialTypes);
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    useEffect(() => setTypes(initialTypes), [initialTypes]);
 
     async function handleSubmit(formData: FormData) {
         setLoading(true);
@@ -22,7 +25,7 @@ export function OccurrenceTypesTab({ initialTypes }: OccurrenceTypesTabProps) {
             if (result.success) {
                 setMessage({ type: 'success', text: 'Tipo de ocorrência criado!' });
                 setShowModal(false);
-                window.location.reload();
+                router.refresh();
             } else {
                 setMessage({ type: 'error', text: result.error || 'Erro ao criar tipo' });
             }
@@ -37,7 +40,7 @@ export function OccurrenceTypesTab({ initialTypes }: OccurrenceTypesTabProps) {
         const result = await deleteOccurrenceType(id);
         if (result.success) {
             setMessage({ type: 'success', text: 'Tipo excluído!' });
-            window.location.reload();
+            router.refresh();
         } else {
             setMessage({ type: 'error', text: result.error || 'Erro ao excluir tipo' });
         }

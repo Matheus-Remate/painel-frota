@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { createBrand, updateBrand, deleteBrand, type Brand } from "@/lib/services/settings";
 
@@ -10,10 +11,12 @@ interface BrandsTabProps {
 
 export function BrandsTab({ initialBrands }: BrandsTabProps) {
     const [brands, setBrands] = useState<Brand[]>(initialBrands);
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    useEffect(() => setBrands(initialBrands), [initialBrands]);
 
     async function handleSubmit(formData: FormData) {
         setLoading(true);
@@ -26,8 +29,7 @@ export function BrandsTab({ initialBrands }: BrandsTabProps) {
                 setMessage({ type: 'success', text: editingBrand ? 'Marca atualizada!' : 'Marca criada!' });
                 setShowModal(false);
                 setEditingBrand(null);
-                // Simple refresh logic - in a real app might use router.refresh() or specialized state management
-                window.location.reload();
+                router.refresh();
             } else {
                 setMessage({ type: 'error', text: result.error || 'Erro ao salvar marca' });
             }
@@ -42,7 +44,7 @@ export function BrandsTab({ initialBrands }: BrandsTabProps) {
         const result = await deleteBrand(id);
         if (result.success) {
             setMessage({ type: 'success', text: 'Marca excluída!' });
-            window.location.reload();
+            router.refresh();
         } else {
             setMessage({ type: 'error', text: result.error || 'Erro ao excluir marca' });
         }

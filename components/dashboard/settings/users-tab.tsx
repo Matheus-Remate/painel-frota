@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 import { Plus, Pencil, Trash2, Loader2, ShieldCheck } from "lucide-react";
 import { createUserAccount, updateUserAccount, updateUserRole, deleteUser } from "@/lib/services/settings";
 import type { UserProfile } from "@/lib/services/auth";
@@ -11,6 +12,7 @@ interface UsersTabProps {
 }
 
 export function UsersTab({ initialUsers, currentRole }: UsersTabProps) {
+    const router = useRouter();
     const users = initialUsers;
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -28,7 +30,7 @@ export function UsersTab({ initialUsers, currentRole }: UsersTabProps) {
                 setMessage({ type: 'success', text: editingUser ? 'Usuário atualizado!' : 'Usuário criado com sucesso!' });
                 setShowModal(false);
                 setEditingUser(null);
-                window.location.reload();
+                router.refresh();
             } else {
                 setMessage({ type: 'error', text: result.error || 'Erro ao processar usuário' });
             }
@@ -42,7 +44,7 @@ export function UsersTab({ initialUsers, currentRole }: UsersTabProps) {
             const result = await updateUserRole(userId, newRole);
             if (result.success) {
                 setMessage({ type: 'success', text: 'Nível de acesso atualizado!' });
-                window.location.reload();
+                router.refresh();
             } else {
                 setMessage({ type: 'error', text: result.error || 'Erro ao atualizar nível de acesso' });
             }
@@ -58,7 +60,7 @@ export function UsersTab({ initialUsers, currentRole }: UsersTabProps) {
         const result = await deleteUser(userId);
         if (result.success) {
             setMessage({ type: 'success', text: 'Usuário excluído com sucesso!' });
-            window.location.reload();
+            router.refresh();
         } else {
             setMessage({ type: 'error', text: result.error || 'Erro ao excluir usuário' });
         }

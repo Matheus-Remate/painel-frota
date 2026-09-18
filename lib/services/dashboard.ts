@@ -64,7 +64,8 @@ export async function resolveCheckin(id: string, notes: string) {
         .update({
             resolved: true,
             resolved_at: new Date().toISOString(),
-            resolved_by: authorized.id,
+            // check_ins.resolved_by referencia profiles.id, não auth.users.id.
+            resolved_by: authorized.profileId,
             resolution_notes: notes
         })
         .eq('id', id);

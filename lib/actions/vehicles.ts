@@ -36,12 +36,13 @@ export async function createVehicle(formData: FormData) {
         brand: brandName, // Required by DB constraint
         model: modelName, // Required by DB constraint (Legacy)
         license_plate: formData.get('license_plate') as string,
-        chassis: formData.get('chassis') as string || '0',
-        renavam: formData.get('renavam') as string || '0',
+        chassis: String(formData.get('chassis') || '').trim() || null,
+        renavam: String(formData.get('renavam') || '').trim() || null,
         year: parseInt(formData.get('year') as string),
         color: formData.get('color') as string,
         fuel_type: formData.get('fuel_type') as string,
         usage_category: formData.get('usage_category') as string || 'GENERAL',
+        nickname: String(formData.get('nickname') || '').trim() || null,
         status: 'IN_YARD', // Padrão inicial
         capacity: {
             pbt: formData.get('capacity_pbt') ? parseInt(formData.get('capacity_pbt') as string) : 0,
@@ -55,8 +56,12 @@ export async function createVehicle(formData: FormData) {
 
     if (error) {
         console.error('Error creating vehicle:', error);
-        // Em produção, você retornaria o erro para o form exibir
-        return { success: false, error: error.message };
+        if (error.code === '23505') {
+            if (error.message.includes('vehicles_chassis_key')) return { success: false, error: 'Já existe um veículo cadastrado com este chassi. Confira o número informado.' };
+            if (error.message.includes('vehicles_license_plate_key')) return { success: false, error: 'Já existe um veículo cadastrado com esta placa.' };
+            if (error.message.includes('vehicles_renavam_key')) return { success: false, error: 'Já existe um veículo cadastrado com este RENAVAM.' };
+        }
+        return { success: false, error: 'Não foi possível cadastrar o veículo. Confira os dados e tente novamente.' };
     }
 
     revalidatePath('/dashboard/vehicles');
@@ -98,6 +103,7 @@ export async function updateVehicle(vehicleId: string, formData: FormData) {
     const color = formData.get('color');
     const fuel_type = formData.get('fuel_type');
     const status = formData.get('status');
+    const nickname = String(formData.get('nickname') || '').trim() || null;
 
     if (model_id) updateData.model_id = model_id;
     if (license_plate) updateData.license_plate = license_plate;
@@ -107,6 +113,7 @@ export async function updateVehicle(vehicleId: string, formData: FormData) {
     if (color) updateData.color = color;
     if (fuel_type) updateData.fuel_type = fuel_type;
     if (status) updateData.status = status;
+    updateData.nickname = nickname;
     updateData.qr_display_settings = {
         fuel: formData.get('qr_fuel') === 'on',
         odometer: formData.get('qr_odometer') === 'on',

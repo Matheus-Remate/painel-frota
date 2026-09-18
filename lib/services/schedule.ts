@@ -36,6 +36,7 @@ export const getReservations = cache(async () => {
             status,
             vehicle:vehicles(
                 license_plate,
+                nickname,
                 model:models(
                     name,
                     brand:brands(name)
@@ -70,6 +71,7 @@ export const getReservationById = cache(async (id: string) => {
             vehicle:vehicles(
                 id,
                 license_plate,
+                nickname,
                 model:models(
                     name,
                     brand:brands(name)
