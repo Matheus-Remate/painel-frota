@@ -141,4 +141,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma alteração de dados ou schema.
 - Backup: não aplicável.
 - Validação: typecheck, lint e testes antes da publicação.
-- Publicação: pendente de validação e envio a `main`.
+- Publicação: commit `211001c`, branch `main`, enviado a `origin/main` para implantação automática.
