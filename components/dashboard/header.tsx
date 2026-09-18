@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, CalendarDays, CarFront, CheckCircle2, ClipboardList, Home, Menu, Plus, Settings, TriangleAlert, X } from 'lucide-react';
+import { Bell, CalendarDays, CarFront, CheckCircle2, ClipboardList, Home, Menu, Plus, Settings, TriangleAlert, Users, X } from 'lucide-react';
 import { signOut, type AuthUser } from '@/lib/services/auth';
 import type { FleetNotification } from '@/lib/services/notifications';
 import { getNotifications, markNotificationsRead } from '@/lib/services/notifications';
@@ -14,6 +14,7 @@ interface HeaderProps { user: AuthUser; initialNotifications: FleetNotification[
 const items = [
     { href: '/dashboard', label: 'Centro de Comando', icon: Home, roles: ['admin', 'gestor'] },
     { href: '/dashboard/vehicles', label: 'Frota & Pátio', icon: CarFront, roles: ['admin', 'gestor'] },
+    { href: '/dashboard/drivers', label: 'Condutores', icon: Users, roles: ['admin', 'gestor'] },
     { href: '/dashboard/reservations', label: 'Reservas', icon: CalendarDays, roles: ['admin', 'gestor'] },
     { href: '/dashboard/schedule', label: 'Agenda', icon: CalendarDays, roles: ['admin', 'gestor'] },
     { href: '/dashboard/checkins', label: 'Revisões & Vistorias', icon: CheckCircle2, roles: ['admin', 'gestor'] },

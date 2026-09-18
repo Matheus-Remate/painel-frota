@@ -9,7 +9,8 @@ test('operational interface keeps navigation while providing safe dashboard fall
         readFile(new URL('../components/schedule/reservation-details-button.tsx', import.meta.url), 'utf8'),
     ]);
     assert.match(dashboard, /getReservations\(\)\.catch\(\(\) => \[\]\)/);
-    assert.match(dashboard, /OperationalTicker/);
+    assert.doesNotMatch(dashboard, /OperationalTicker|CommandFleetDeck/);
+    assert.match(header, /href: '\/dashboard\/drivers'/);
     assert.match(header, /notificationRoot/);
     assert.match(reservation, /event\.target === event\.currentTarget/);
 });
