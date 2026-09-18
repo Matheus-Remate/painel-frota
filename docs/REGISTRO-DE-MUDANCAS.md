@@ -132,4 +132,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: `038_audit_alias_and_reservation_permissions.sql`; não remove ou altera registros atuais, apenas adiciona coluna, tabela, índice, políticas, gatilhos e RPC.
 - Backup: não aplicável a registros existentes; migration aditiva.
 - Validação: typecheck, lint e 26 testes passaram.
-- Publicação: migration pendente de aplicação no Supabase; código pendente de envio a `main`.
+- Publicação: commit `29b30c2`, branch `main`, enviado a `origin/main`; migration `038` pendente de aplicação no Supabase.
