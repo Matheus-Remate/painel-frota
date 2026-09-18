@@ -29,4 +29,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma migration ou alteração de dados. A função `public.get_my_profile()` e a permissão de execução para `authenticated` foram verificadas no Supabase de produção; a definição anterior foi preservada por consulta lógica antes da mudança de aplicação.
 - Backup: não aplicável a dados, pois não há escrita, exclusão ou alteração de schema. A definição SQL existente da função foi registrada como contingência antes da validação.
 - Validação: checagem de vínculo Auth/perfil do administrador, inspeção da função e grant no Supabase, confirmação visual do envio do e-mail de recuperação em produção, typecheck, lint, 17 testes e build após a alteração.
-- Publicação: commit `79b9b19`, branch `main`, enviado a `origin/main`; aguardando a confirmação final da implantação automática da Vercel.
+- Publicação: commit `79b9b19`, branch `main`, enviado a `origin/main`; rota de recuperação em produção respondeu HTTP 200 após a publicação automática da Vercel.
