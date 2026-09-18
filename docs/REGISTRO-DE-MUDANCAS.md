@@ -142,3 +142,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável.
 - Validação: typecheck, lint e testes antes da publicação.
 - Publicação: commit `211001c`, branch `main`, enviado a `origin/main` para implantação automática.
+
+## 2026-09-18 — cards operacionais navegáveis
+
+- Escopo: textos e contagens dos cards operacionais foram ajustados para branco-gelo; cada card tornou-se atalho para a tela correspondente.
+- Interação: o card de veículos disponíveis mantém lista rolável no hover e cada veículo abre diretamente sua ficha.
+- Dados e migrations: nenhuma alteração de dados ou schema.
+- Backup: não aplicável.
+- Validação: typecheck e lint antes da publicação.
+- Publicação: pendente de envio a `main`.

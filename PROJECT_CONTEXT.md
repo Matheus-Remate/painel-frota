@@ -68,6 +68,8 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
+- Os cards operacionais da Home usam texto e contagens em branco-gelo, são clicáveis para a tela relacionada e, no card de disponíveis, a lista rolável no hover permite abrir a ficha de cada veículo.
+
 - A página Reservas oculta, por padrão, eventos concluídos há mais de 7 dias e oferece ação explícita para exibi-los. A busca da Home inclui placa/modelo, evento e nome textual do condutor, apresentando placa, evento e condutor no contexto abaixo do resultado.
 
 - A migration `038_audit_alias_and_reservation_permissions.sql` adiciona apelido livre de veículo e trilha imutável de alterações de veículos, reservas, solicitações, movimentos e devoluções. Ela também torna a RPC de edição de reserva compatível com a regra: administrador pode editar; gestor não edita evento encerrado. Aplicação no Supabase de produção pendente.
