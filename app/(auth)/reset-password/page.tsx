@@ -7,6 +7,7 @@ import { Car, Loader2, Eye, EyeOff, CheckCircle, AlertCircle, Lock } from "lucid
 import { useRouter } from "next/navigation";
 
 type RecoveryState = "checking" | "ready" | "invalid";
+const RECOVERY_VALIDATION_TIMEOUT_MS = 10_000;
 
 export default function ResetPasswordPage() {
     const router = useRouter();
@@ -20,6 +21,20 @@ export default function ResetPasswordPage() {
 
     useEffect(() => {
         let mounted = true;
+
+        const withTimeout = <T,>(operation: Promise<T>) => new Promise<T>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Tempo esgotado ao validar o link de recuperação.')), RECOVERY_VALIDATION_TIMEOUT_MS);
+            operation.then(
+                value => {
+                    clearTimeout(timeout);
+                    resolve(value);
+                },
+                reason => {
+                    clearTimeout(timeout);
+                    reject(reason);
+                }
+            );
+        });
 
         const markReady = () => {
             if (mounted) setRecoveryState("ready");
@@ -37,17 +52,29 @@ export default function ResetPasswordPage() {
             const url = new URL(window.location.href);
             const code = url.searchParams.get("code");
 
-            if (code) {
-                const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-                if (!exchangeError) {
+            try {
+                if (code) {
+                    const { data, error: exchangeError } = await withTimeout(supabase.auth.exchangeCodeForSession(code));
+                    if (exchangeError || !data.session) {
+                        throw exchangeError || new Error('O link não criou uma sessão de recuperação.');
+                    }
+
                     window.history.replaceState({}, document.title, url.pathname);
+                    if (mounted) setRecoveryState("ready");
+                    return;
+                }
+
+                const { data: { session } } = await withTimeout(supabase.auth.getSession());
+                if (!mounted) return;
+
+                setRecoveryState(session ? "ready" : "invalid");
+            } catch (recoveryError) {
+                console.error('Falha ao validar link de recuperação:', recoveryError);
+                if (mounted) {
+                    setError('Não foi possível validar este link. Solicite um novo link de recuperação.');
+                    setRecoveryState("invalid");
                 }
             }
-
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!mounted) return;
-
-            setRecoveryState(session ? "ready" : "invalid");
         };
 
         initializeRecovery();
@@ -115,7 +142,8 @@ export default function ResetPasswordPage() {
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-xl text-center">
                     <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-white mb-2">Link inválido ou expirado</h2>
-                    <p className="text-slate-400 mb-6">Solicite um novo link para redefinir sua senha.</p>
+                    <p className="text-slate-400 mb-3">Solicite um novo link para redefinir sua senha.</p>
+                    {error && <p className="mb-6 text-sm text-red-400">{error}</p>}
                     <Link href="/forgot-password" className="text-brand-400 hover:text-brand-300 transition-colors">
                         Solicitar novo link
                     </Link>

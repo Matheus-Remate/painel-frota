@@ -94,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         let mounted = true;
+        let scheduledProfileRefresh: ReturnType<typeof setTimeout> | null = null;
 
         const initAuth = async () => {
             try {
@@ -115,25 +116,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
+            (_event, session) => {
                 if (!mounted) return;
 
-                try {
-                    if (session?.user) {
-                        setUser(session.user);
-                        await fetchProfile(session.user);
-                    } else {
-                        setUser(null);
-                        setProfile(null);
-                        setProfileLoadFailed(false);
-                    }
-                } catch (err: any) {
-                    if (err?.name !== 'AbortError') {
-                        console.error("Auth change error:", err);
-                    }
-                } finally {
-                    if (mounted) setIsLoading(false);
+                if (scheduledProfileRefresh) {
+                    clearTimeout(scheduledProfileRefresh);
                 }
+
+                if (session?.user) {
+                    setUser(session.user);
+                    // O cliente Supabase mantém um lock durante este callback.
+                    // Não faça chamadas assíncronas ao próprio cliente aqui: adie
+                    // a busca até o callback encerrar para evitar sessão travada.
+                    scheduledProfileRefresh = setTimeout(() => {
+                        if (mounted) void fetchProfile(session.user);
+                    }, 0);
+                } else {
+                    setUser(null);
+                    setProfile(null);
+                    setProfileLoadFailed(false);
+                }
+
+                setIsLoading(false);
             }
         );
 
@@ -148,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             mounted = false;
             subscription.unsubscribe();
             clearTimeout(timeout);
+            if (scheduledProfileRefresh) clearTimeout(scheduledProfileRefresh);
         };
     }, [fetchProfile, supabase]);
 

@@ -49,6 +49,15 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Validação: checagem de vínculo Auth/perfil do administrador, inspeção da função e grant no Supabase, confirmação visual do envio do e-mail de recuperação em produção, typecheck, lint, 17 testes e build após a alteração.
 - Publicação: commit `79b9b19`, branch `main`, enviado a `origin/main`; rota de recuperação em produção respondeu HTTP 200 após a publicação automática da Vercel.
 
+## 2026-09-17 — correções do listener Auth e recuperação de senha
+
+- Escopo: removida a chamada assíncrona ao Supabase de dentro do callback `onAuthStateChange`; a leitura de perfil agora é agendada após o callback encerrar. A redefinição de senha usa a sessão retornada pela troca do código e possui tempo limite de validação.
+- Impacto operacional: elimina a condição em que o cabeçalho autenticado é exibido, mas o perfil do cliente fica nulo por bloqueio do cliente Supabase; o link de recuperação passa a exibir formulário ou erro recuperável, sem carregamento infinito.
+- Dados e migrations: nenhuma alteração de dados ou schema. Confirmados no banco de produção o vínculo Auth/perfil de Tiago Martinez e a leitura sob a RLS do papel `authenticated`.
+- Backup: não aplicável; a alteração é exclusivamente de fluxo no cliente e a consulta de validação foi encerrada com `ROLLBACK`.
+- Validação: contratos automatizados do adiamento do callback e da troca de código de recuperação, typecheck, lint, testes, build e nova verificação da sessão publicada após implantação.
+- Publicação: pendente da implantação desta correção.
+
 ## 2026-09-17 — correção do bloqueio de perfil no listener Auth
 
 - Escopo: removida a chamada assíncrona ao Supabase de dentro do callback `onAuthStateChange`; a leitura de perfil agora é agendada após o callback encerrar.

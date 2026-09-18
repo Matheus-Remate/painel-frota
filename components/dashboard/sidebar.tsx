@@ -84,12 +84,6 @@ const navItems: NavItem[] = [
         icon: <User className="w-5 h-5" />,
         roles: ['admin', 'gestor', 'solicitante'],
     },
-    {
-        href: '/dashboard/settings',
-        label: 'Configurações',
-        icon: <Settings className="w-5 h-5" />,
-        roles: ['admin', 'gestor'],
-    },
 ];
 
 import { useSidebar } from "@/lib/contexts/SidebarContext";
