@@ -103,4 +103,4 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Dados e migrations: nenhuma migration ou alteração de dados. A tela consulta os campos `driver_name` e `is_emergency` já adicionados pela migration `037`.
 - Backup: não aplicável; mudança de interface e leitura.
 - Validação: contrato automatizado do cartão/modal e das proteções de edição, além de typecheck, lint e testes antes da publicação.
-- Publicação: pendente das validações e envio desta mudança para `main`.
+- Publicação: commit `adce423`, branch `main`, enviado a `origin/main` para implantação automática.
