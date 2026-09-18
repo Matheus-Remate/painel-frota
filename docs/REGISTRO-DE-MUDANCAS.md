@@ -66,3 +66,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável; mudança exclusiva no cliente.
 - Validação: testes de contrato da serialização, typecheck, lint, testes e build.
 - Publicação: commit `4c15b23`, branch `main`, enviado a `origin/main`; produção respondeu HTTP 200 antes do envio do novo link de recuperação.
+
+## 2026-09-17 — etiqueta de QR para parassol
+
+- Escopo: criada etiqueta de impressão de meia folha A4 para a ficha do veículo.
+- Impacto operacional: a impressão passa a trazer somente marca/modelo, ano, combustível, chassi, RENAVAM, placa e QR Code, pronta para recorte e fixação no parassol.
+- Dados e migrations: nenhuma alteração de dados ou schema.
+- Backup: não aplicável; mudança exclusiva de apresentação de impressão.
+- Validação: contrato automatizado do conteúdo e dimensões de impressão, typecheck, lint, testes, build e inspeção visual antes da publicação.
+- Publicação: pendente das validações desta mudança.

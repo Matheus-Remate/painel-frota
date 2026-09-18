@@ -23,9 +23,34 @@ export default async function VehicleDetailsPage({ params }: Props) {
 
     // Gera o QR Code para este veículo
     const { dataUrl: qrCodeUrl } = await generateVehicleQRCode(vehicle.id, vehicle.license_plate, vehicle.qr_access_token);
+    const model = Array.isArray(vehicle.model) ? vehicle.model[0] : vehicle.model;
+    const brand = Array.isArray(model?.brand) ? model.brand[0] : model?.brand;
+    const brandAndModel = [brand?.name, model?.name || vehicle.model_name || vehicle.model].filter(Boolean).join(' ') || 'Veículo';
 
     return (
         <div className="space-y-8">
+            <section className="vehicle-qr-print-label" aria-label="Etiqueta de impressão do veículo">
+                <div className="vehicle-qr-print-details">
+                    <div>
+                        <p className="vehicle-qr-print-label-name">Marca e modelo</p>
+                        <p className="vehicle-qr-print-value vehicle-qr-print-model">{brandAndModel}</p>
+                    </div>
+                    <div className="vehicle-qr-print-plate">
+                        <p className="vehicle-qr-print-label-name">Placa</p>
+                        <p className="vehicle-qr-print-value">{vehicle.license_plate}</p>
+                    </div>
+                    <div className="vehicle-qr-print-pairs">
+                        <div><p className="vehicle-qr-print-label-name">Ano</p><p className="vehicle-qr-print-value">{vehicle.year || '—'}</p></div>
+                        <div><p className="vehicle-qr-print-label-name">Combustível</p><p className="vehicle-qr-print-value">{vehicle.fuel_type || '—'}</p></div>
+                    </div>
+                    <div><p className="vehicle-qr-print-label-name">Chassi</p><p className="vehicle-qr-print-value vehicle-qr-print-code">{vehicle.chassis || '—'}</p></div>
+                    <div><p className="vehicle-qr-print-label-name">RENAVAM</p><p className="vehicle-qr-print-value vehicle-qr-print-code">{vehicle.renavam || '—'}</p></div>
+                </div>
+                <div className="vehicle-qr-print-code-wrap">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={qrCodeUrl} alt={`QR Code ${vehicle.license_plate}`} className="vehicle-qr-print-code-image" />
+                </div>
+            </section>
             {/* Header com Navegação */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-4">
@@ -37,10 +62,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                     </Link>
                     <div>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                            {(() => {
-                                const model = (vehicle as any).model;
-                                return Array.isArray(model) ? model[0]?.name : model?.name || vehicle.model_name || vehicle.model;
-                            })()}
+                            {model?.name || vehicle.model_name || vehicle.model}
                             <span className={`text-sm px-3 py-1 rounded-full border ${vehicle.status === 'IN_YARD' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                                 vehicle.status === 'ON_ROUTE' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                     'bg-amber-500/10 text-amber-400 border-amber-500/20'
@@ -51,10 +73,7 @@ export default async function VehicleDetailsPage({ params }: Props) {
                             </span>
                         </h1>
                         <p className="text-slate-400 font-mono mt-1 text-lg">
-                            {vehicle.license_plate} • {(() => {
-                                const brand = (vehicle as any).model?.brand || (vehicle as any).brand;
-                                return Array.isArray(brand) ? brand[0]?.name : brand?.name || '';
-                            })()}
+                            {vehicle.license_plate} • {brand?.name || ''}
                         </p>
                     </div>
                 </div>

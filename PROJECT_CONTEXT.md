@@ -68,6 +68,8 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
+- A impressão do QR na ficha do veículo usa uma etiqueta exclusiva de meia folha A4 (210 × 148,5 mm), com apenas marca/modelo, ano, combustível, chassi, RENAVAM, placa e QR Code. Todo o restante da aplicação é ocultado no modo de impressão.
+
 - Em 2026-09-17, a leitura de perfil no cliente passou a ter fallback RLS após a RPC `get_my_profile`; o listener de Auth agenda e serializa essa leitura fora do callback do Supabase, com uma única tentativa curta para `AbortError`, evitando bloqueio e corrida de sessão. A função, a permissão `authenticated` e a leitura RLS do perfil de produção foram verificadas antes da publicação.
 
 - As migrations `034` e `035` foram aplicadas com sucesso no Supabase de produção em 2026-09-17, via SQL Editor. O histórico gerenciado legado do projeto ainda lista somente `001`–`003`, embora o schema já contivesse as bases de `032`/`033`; não use essa listagem isoladamente para inferir o estado real do banco.
