@@ -68,6 +68,8 @@ A v1 está publicada: gestão de usuários por gestor com restrições, QR orien
 
 ## Pendências e problemas conhecidos
 
+- O QR operacional exibe somente **Retirada imediata — somente em urgência** e solicita apenas o nome do condutor. A retirada é registrada como emergência, notifica gestores e ainda respeita bloqueios de manutenção e alertas alto/urgente pela migration `036`.
+
 - A impressão do QR na ficha do veículo usa uma etiqueta exclusiva de meia folha A4 (210 × 148,5 mm), com apenas marca/modelo, ano, combustível, chassi, RENAVAM, placa e QR Code. Todo o restante da aplicação é ocultado no modo de impressão.
 
 - Em 2026-09-17, a leitura de perfil no cliente passou a ter fallback RLS após a RPC `get_my_profile`; o listener de Auth agenda e serializa essa leitura fora do callback do Supabase, com uma única tentativa curta para `AbortError`, evitando bloqueio e corrida de sessão. A função, a permissão `authenticated` e a leitura RLS do perfil de produção foram verificadas antes da publicação.

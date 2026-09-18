@@ -122,3 +122,11 @@ export async function registerCheckout(formData: FormData) {
     revalidatePath('/dashboard');
     return { success: true };
 }
+
+export async function registerEmergencyCheckout(formData: FormData) {
+    const vehicleId = String(formData.get('vehicleId') ?? ''); const token = String(formData.get('token') ?? ''); const driverName = String(formData.get('driverName') ?? '').trim();
+    if (!UUID_PATTERN.test(vehicleId) || !UUID_PATTERN.test(token) || driverName.length < 3) return { success: false, error: 'Informe o nome completo do condutor.' };
+    const { error } = await createAdminClient().rpc('register_emergency_vehicle_checkout', { p_vehicle_id: vehicleId, p_token: token, p_driver_name: driverName });
+    if (error) return { success: false, error: error.message || 'Retirada indisponível.' };
+    revalidatePath(`/mobile/vehicle/${vehicleId}`); revalidatePath('/dashboard'); return { success: true };
+}

@@ -75,3 +75,12 @@ Este arquivo é obrigatório para toda mudança funcional, de banco, segurança,
 - Backup: não aplicável; mudança exclusiva de apresentação de impressão.
 - Validação: contrato automatizado do conteúdo e dimensões de impressão, typecheck, lint, testes, build e inspeção visual antes da publicação.
 - Publicação: pendente das validações desta mudança.
+
+## 2026-09-17 — retirada imediata por QR em urgência
+
+- Escopo: QR público reduzido à retirada imediata, com aviso de urgência e somente o campo de nome do condutor.
+- Impacto operacional: a retirada emergencial é auditada e notifica gestores; continua bloqueada para veículo fora do pátio, manutenção ou alerta impeditivo.
+- Dados e migrations: `036_emergency_qr_checkout.sql` cria RPC atômica de retirada emergencial e registra `vehicle_movements` com marcador `emergency`.
+- Backup: não aplicável a registros existentes; migration adiciona somente função. Definições existentes não são removidas.
+- Validação: typecheck, lint, revisão da função SQL e teste de fluxo após aplicação.
+- Publicação: pendente da migration e implantação.
